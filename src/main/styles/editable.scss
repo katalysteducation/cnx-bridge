@@ -1,0 +1,24 @@
+// ---- Editable -------------------
+
+%editable {
+  border: none;
+  color: #181818;
+  margin: 10px 0;
+  padding: 1px 0;
+  border-radius: 0;
+  position: relative;
+  transition: background .3s ease;
+
+  // &:first-of-type {
+  //   margin-top: 15px;
+  // }
+  //
+  // &:last-of-type {
+  //   margin-bottom: 15px;
+  // }
+
+  &:focus {
+    outline: none;
+    background: #ededed;
+  }
+}

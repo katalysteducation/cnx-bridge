@@ -1,0 +1,50 @@
+.cnxb-toolbar {
+  opacity: 0;
+  text-align: right;
+  visibility: hidden;
+  padding: 5px 25px 5px 5px;
+  transition: opacity .3s ease, visibility 0s linear .3s;
+
+  &.active {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity .3s ease, visibility 0s;
+  }
+
+  &__btn {
+    border: none;
+    color: #2e344c;
+    font-size: 12px;
+    cursor: pointer;
+    margin-top: 4px;
+    background: #ddd;
+    margin-right: 10px;
+    border-radius: 15px;
+    padding: 5px 15px 4px 15px;
+    transition: background .3s ease, color .3s ease;
+
+    &.comments {
+      color: white;
+      right: 25px;
+      position: absolute;
+      background: #3174f1;
+    }
+
+    &:hover {
+      color: white;
+      background: #ccc;
+
+      &.save {
+        background: #78cc1c;
+      }
+
+      &.discard {
+        background: #f03616;
+      }
+    }
+
+    &:focus {
+      outline: none;
+    }
+  }
+}

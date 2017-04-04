@@ -1,0 +1,33 @@
+import Bridge from "./bridge";
+import connect from "../utilities/connect";
+import { injectScript, injectStyle } from "../utilities/tools";
+
+// Add Google Icons.
+injectStyle('https://fonts.googleapis.com/icon?family=Material+Icons');
+
+// Load External scripts for rendering Math.
+injectScript('app/jax/jax.config.js');
+injectScript('https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML', true);
+injectScript('app/jax/jax.js');
+
+
+// ---- Initialize UI --------------------
+
+const bridge = new Bridge(document.body);
+
+// ---- Open UI communication channel ----
+
+const uiChannel = connect.open('bridge');
+uiChannel.listen('recover', bridge.recover);
+uiChannel.listen('toggle', bridge.toggle);
+uiChannel.listen('reload', bridge.reload);
+uiChannel.listen('save', bridge.save);
+
+// ---- Send resore date to menu ----
+uiChannel.listen('rdate', () => {
+  const backup = JSON.parse(localStorage.getItem('cnx-bridge-backup') || false);
+  uiChannel.send('rdate', { date : backup ? backup.date : undefined })
+});
+
+// Send info to background.js that content is active.
+chrome.runtime.sendMessage({ ready : true });

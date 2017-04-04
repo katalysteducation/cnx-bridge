@@ -1,0 +1,113 @@
+.cnxb-style-editor {
+
+  & button {
+    margin: 3px;
+    color: white;
+    border: none;
+    cursor: pointer;
+    background: none;
+    position: relative;
+    display: inline-block;
+    vertical-align: bottom;
+
+    &.off {
+      display: none;
+    }
+
+    & > i {
+      vertical-align: bottom;
+    }
+
+    // Glass.
+    &:before {
+      content: ' ';
+      top: 0;
+      left: 0;
+      z-index: 10;
+      width: 100%;
+      height: 100%;
+      display: block;
+      position: absolute;
+    }
+
+    &:focus {
+      outline: none;
+      color: #2db63e;
+    }
+  }
+
+  // Styles panel.
+
+  &__styles {
+    display: none;
+
+    &.active {
+      display: block;
+    }
+  }
+
+  // Comment panel
+  &__comment {
+    display: none;
+
+    &.active {
+      display: block;
+    }
+
+    & > p {
+      margin: 0;
+      padding: 5px;
+      width: 200px;
+      display: block;
+      font-size: 12px;
+      min-height: 20px;
+      background: #ddd;
+      line-height: 16px;
+      border-radius: 2px;
+      font-family: 'Roboto';
+      word-wrap: break-word;
+
+      &:focus {
+        outline:none;
+      }
+    }
+  }
+}
+
+// ---- CNXML ----------------
+
+term {
+  color: #83a;
+  font-weight: bold;
+}
+
+emphasis[effect="italic"] {
+    font-style: italic;
+}
+
+emphasis[effect="bold"] {
+  font-weight: bold;
+}
+
+ref {
+  color: #49a6f2;
+  text-decoration: underline;
+}
+
+
+del comment {
+  background: none;
+  box-shadow: inset 0px -2px 0px 0px #ffde00;
+}
+
+ins comment {
+  background: none;
+  box-shadow: inset 0px -2px 0px 0px #ffde00;
+}
+
+comment {
+  padding: 0 2px;
+  color: #212121;
+  background: #ffde00;
+  display: inline-block;
+}

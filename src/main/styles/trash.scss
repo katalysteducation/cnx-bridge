@@ -1,0 +1,114 @@
+%glass {
+  position: relative;
+
+  &:before {
+  	content: ' ';
+    top: 0;
+    left: 0;
+  	z-index: 10;
+  	width: 100%;
+  	height: 100%;
+  	display: block;
+  	position: absolute;
+  }
+}
+
+.cnxb .content > div {
+  margin: 15px;
+  max-width: 960px;
+  background: white;
+  padding: 15px 25px;
+  box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
+
+  & p[data-target=editable] {
+    @extend %editable;
+  }
+}
+
+.cnxb {
+  // ---- COMPONENT ARP MARKER -----
+
+  & .cnxb-arp-marker {
+    top: 0;
+    right: 10px;
+    width: 26px;
+    height: 40px;
+    color: white;
+    display: none;
+    padding: 7px 0;
+    font-size: 12px;
+    line-height: 14px;
+    border-radius: 2px;
+    text-align: center;
+    position: absolute;
+    background: #08b4b4;
+    font-family: 'Roboto';
+    &.active {
+      display: block;
+    }
+  }
+
+
+  // ---- REMOVED ------------------
+
+  .cnxb-removed {
+    background: #f29066;
+  }
+
+
+  // ---- COMMON STYLES -----------
+
+  &-content {
+    display: block;
+    max-width: 960px;
+    position: relative;
+    margin: 0 20px 0 0;
+
+  }
+
+  // TEMP ----
+
+  & .cnxb-images {
+
+    & > span {
+      display: inline-block;
+      padding: 3px 3px 0px 3px;
+      box-shadow: inset 0px 0px 0px 3px #ccc;
+      img {
+        max-width: 100%;
+        height: auto;
+      }
+    }
+
+    & > p {
+      margin: 0;
+      padding: 6px;
+      background: #ccc;
+    }
+  }
+  // TEMP ----
+
+
+}
+
+
+.revbtn {
+  margin: 15px;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background .3s ease;
+
+  &:hover {
+    background: #39d630;
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:active {
+  background: #2eaa27;
+  }
+}

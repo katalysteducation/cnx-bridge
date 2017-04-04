@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head><title>CNX-Bridge Options</title></head>
+<body>
+  <!--  2356 -->
+
+<section class="options">
+  <div class="options-wrapper">
+    <h3>CNX Bridge v 0.4.0 α</h3>
+    <div class="options-panel">
+      <img class="options-panel__avatar" src="logo.png" alt="Avatar">
+      <div class="options-panel__input">
+        <input id="pin" type="password" placeholder="PIN">
+      </div>
+      <div class="options-panel__input">
+        <input id="username" type="text" placeholder="Username">
+      </div>
+      <div class="options-panel__input">
+        <input id="avatar" type="text" placeholder="Avatar Color" value="#3174f1">
+        <span id="color" class="options-color"></span>
+      </div>
+      <div class="options-panel__input">
+        <input id="backend" type="text" placeholder="Backend server" value="https://bridge.katalysteducation.org/backend/api/v1/" disabled="true">
+      </div>
+      <button id="connect">Save</button>
+    </div>
+
+    <div id="messages" class="options-messages"></div>
+    <button id="attributions" class="options-attributions">Attributions</button>
+  </div>
+
+</section>
+
+<script src="options.js"></script>
+</body>
+</html>

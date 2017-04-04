@@ -1,0 +1,138 @@
+@import "../../../node_modules/perfect-scrollbar/dist/css/perfect-scrollbar.min.css";
+@import "./editable.scss";
+@import "./ieditor.scss";
+@import "./select.scss";
+@import "./toggle.scss";
+@import "./trash.scss";
+@import "./cnxml.scss";
+@import "./diff.scss";
+
+$tool-height: 40px;
+$app-margin: 15px;
+$primary: #3174f1;
+$separator: #e7e7ea;
+
+// Main CNX Bridge class.
+.cnxb {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  position: fixed;
+  font-size: 14px;
+  background: #f7f7f7;
+  font-family: 'Roboto', sans-serif;
+
+  // Hide.
+  opacity: 0;
+  z-index: 0;
+  overflow: hidden;
+  visibility:hidden;
+  transform: scale(0.95) translateZ(0);
+  transition: visibility 0s linear 0.5s, opacity .3s ease, transform .3s ease;
+
+  &.active {
+    // Show.
+    opacity: 1;
+    z-index: 3000;
+    visibility:visible;;
+    transform: scale(1) translateZ(0);
+    transition: opacity .3s ease, transform .3s ease, visibility 0s;
+  }
+
+  // ---- NAVIGATOR ----------------
+
+  &__navigator {
+    width: 390px;
+    height: 100%;
+    display: block;
+    font-weight: 400;
+    position: relative;
+  }
+
+  &__toolbox {
+    width: 100%;
+    height: $tool-height;
+    border-bottom: 1px solid $separator;
+
+    & button {
+      width: 44px;
+      color: #333;
+      height: 40px;
+      border: none;
+      @extend %glass;
+      cursor: pointer;
+      background: none;
+      transition: background .3s ease, color .3s ease;
+
+      &.active,
+      &:active {
+        color: $primary;
+      }
+
+      &:hover,
+      &:focus,
+      &.active {
+        outline:none;
+        font-weight: bold;
+      	background: linear-gradient(to bottom, #f7f7f7 94%, $primary 94%);
+      }
+    }
+  }
+
+  &__outliner {
+    width: 100%;
+    height: 100%;
+  }
+
+  // ---- WORKSPACE ---------------
+
+  &__workspace {
+    width: 100%;
+    height: 100%;
+    color: #282828;
+    font-size: 15px;
+    line-height: 23px;
+    position: relative;
+    font-family: 'Roboto', sans-serif;
+  }
+
+  &__toolbar {
+    width: 100%;
+    height: $tool-height;
+  }
+
+  &__content {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 40px;
+    position: absolute;
+
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    & > div {
+      top: 0;
+      left:0;
+      right: 0;
+      bottom: 0;
+      position: absolute;
+      margin: 0 $app-margin;
+    }
+  }
+
+  & #InputProxy {
+    z-index: 0;
+    position: absolute;
+    visibility: hidden;
+  }
+}
+
+// Class for document body.
+.passive {
+  overflow: hidden;
+}

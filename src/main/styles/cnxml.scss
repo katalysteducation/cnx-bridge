@@ -1,0 +1,70 @@
+// ---- CNXML ----------------
+
+term {
+  color: #83a;
+  font-weight: bold;
+}
+
+emphasis[effect="italic"] {
+    font-style: italic;
+}
+
+emphasis[effect="bold"] {
+  font-weight: bold;
+}
+
+ref {
+  color: #49a6f2;
+  text-decoration: underline;
+}
+
+comment {
+  padding: 0 2px;
+  color: #212121;
+  user-select: none;
+  background: #ffde00;
+  display: inline-block;
+}
+
+// ---- Titles ----------------
+
+div[data-type=title] {
+  color: #08b4b4;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+// ---- Lists ----------------
+
+div[data-type=item] {
+  display:list-item;
+  margin-left: 10px;
+}
+
+
+// ---- Tables ----------------
+
+div[data-type=table] {
+  display: table;
+  margin: 0 auto;
+}
+
+div[data-type=thead] {
+  background: #DDD;
+  display: table-header-group;
+}
+
+
+div[data-type=row] {
+  display: table-row;
+  &:nth-child(even) {
+    background: #eee;
+  }
+}
+
+div[data-type=entry] {
+  display: table-cell;
+  & > p {
+    margin: 5px 0 !important;
+  }
+}

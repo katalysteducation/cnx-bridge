@@ -1,0 +1,61 @@
+$toggle-active: #3174f1;
+
+.cnxb-toggle {
+  display: inline-block;
+  
+  & > input {
+    position: absolute;
+    margin-left: -9999px;
+    visibility: hidden;
+
+    &:checked + label {
+      background-color: $toggle-active;
+    }
+
+    &:checked + label:after {
+      margin-left: 19px;
+      background-color: $toggle-active;
+    }
+
+    & + label {
+      padding: 2px;
+      width: 40px;
+      height: 20px;
+      display: block;
+      cursor: pointer;
+      outline: none;
+      user-select: none;
+      position: relative;
+      border-radius: 60px;
+      background-color: #dddddd;
+      transition: background 0.4s;
+
+      &:before,
+      &:after {
+        content: "";
+        display: block;
+        position: absolute;
+      }
+
+      &:before {
+        top: 2px;
+        left: 2px;
+        bottom: 2px;
+        right: 2px;
+        border-radius: 60px;
+        background-color: #fff;
+        transition: background 0.4s;
+      }
+
+      &:after {
+        top: 4px;
+        left: 4px;
+        bottom: 4px;
+        width: 16px;
+        border-radius: 52px;
+        background-color: #dddddd;
+        transition: margin 0.4s, background 0.4s;
+      }
+    }
+  }
+}

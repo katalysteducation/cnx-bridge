@@ -1,0 +1,67 @@
+body {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+#menu {
+  width: 130px;
+  padding: 5px 0 3px 0;
+  font-family: Helvetica, Ubuntu, Arial, sans-serif;
+}
+
+button {
+  color: #666;
+  width: 100%;
+  padding: 8px;
+  border: none;
+  display: block;
+  cursor: pointer;
+  background: white;
+  transition: background .3s ease, color .3s ease;
+
+  &:focus,
+  &:active {
+    outline: none;
+  }
+
+  &:hover {
+    color: #333;
+    background: #e5e9e6;
+  }
+
+  &:disabled {
+    color: #999;
+    cursor:auto;
+    &:hover {
+      color: #999;
+      background: none;
+    }
+  }
+}
+
+.archive {
+  color: #999;
+  margin: 4px;
+  padding-top: 5px;
+  text-align: center;
+}
+
+.nocopy {
+  color: #666;
+  padding: 8px;
+  display: block;
+  text-align: center;
+}
+
+#recdate {
+  color: #999;
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+}
+
+hr {
+  border: none;
+  border-bottom: 1px solid #ccc;
+}
