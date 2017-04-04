@@ -1,25 +1,21 @@
-cnx-bridge
+# CNX Bridge #
+> UI Enhancement Layer for CNX Legacy Editor
 
 
-## How to write a component?
-Each component constructor should get following parameters:
+## Instalation ##
 
-| Param | Type | Description |
-|-------|------|-------------|
-| id | String | Unique CNX id |
-| type | String | One of CNXML availabel telemet types |
-| cnxml | JSON | Content of the element. If Component is more compoicated it can recieve a JSON string to evaluate it to more suitabel model for itself |
-| props | Object | attributes that should be attached to element when convert to CNXML format|
+1. **Clone repo**:
+`git clone git@bitbucket.org:katalysteducation/cnx-bridge.git`
+
+2. **Install packages**: `npm install`
+
+3. **Build/Watch**: `npm run watch`
 
 
-Each component should return a common interface:
+## Load to Chrome ##
 
-| Key | Type | Description |
-|-----|------|-------------|
-| id | String | cnx-legacy-identifier |
-| diff | DiffTool | expose DiffTool instance |
-| comment | Comment | expose Comment instance |
-| outline | String | string to display inside Outliner |
-| cnxml | Function | fn returning valid CNXML represesentation of the component |
-| destroy | Function | cleaning fn. that can be called before removing the component |
-| element | HTMLElement | reference to DOM element that will be placed inside the editor |
+1. Open Chrome.
+2. Go to `chrome://extensions/`.
+3. Check `Developer mode`.
+4. Clikc *Load extensions from location...*.
+5. With file exploratore navigate to `build` catalog.
