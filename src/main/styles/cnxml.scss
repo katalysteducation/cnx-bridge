@@ -1,4 +1,4 @@
-// ---- CNXML ----------------
+// ---- Inline styles ---------
 
 term {
   color: #83a;
@@ -13,12 +13,16 @@ emphasis[effect="bold"] {
   font-weight: bold;
 }
 
+// ---- References --------------
+
 ref {
   color: #49a6f2;
   text-decoration: underline;
 }
 
-comment {
+// ---- Comments ----------------
+
+div[data-type=comment] {
   padding: 0 2px;
   color: #212121;
   user-select: none;
@@ -28,10 +32,10 @@ comment {
 
 // ---- Titles ----------------
 
-div[data-type=title] {
-  color: #08b4b4;
+div[data-type=title] > p {
   font-size: 16px;
   font-weight: bold;
+  color: #3b6180 !important;
 }
 
 // ---- Lists ----------------

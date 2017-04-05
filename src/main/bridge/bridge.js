@@ -178,6 +178,11 @@ export default function Bridge (root) {
     diffs = mergeSameSiblings(Array.from(Content.element.querySelectorAll('del, ins')));
   };
 
+
+  // ---- PUBSUB HANDLES -------------------
+
+
+
   // ---- Initialize method ----------------
 
   // Setup event listeners & communication channels.
@@ -193,6 +198,9 @@ export default function Bridge (root) {
 
     // Set scrollbars from PerfectScroll lib.
     pscroll.initialize(contentPanels.view, { suppressScrollX: true });
+
+    // PubSub listeners.
+    pubsub.subscribe('editor.dismiss', select.dismiss);
 
     // Finish.
     resolve(cnxml);

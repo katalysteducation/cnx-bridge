@@ -5,7 +5,7 @@
 ## Instalation ##
 
 1. **Clone repo**:
-`git clone git@bitbucket.org:katalysteducation/cnx-bridge.git`
+`git clone git@bitbucket.orcg:katalysteducation/cnx-bridge.git`
 
 2. **Install packages**: `npm install`
 
@@ -16,6 +16,6 @@
 
 1. Open Chrome.
 2. Go to `chrome://extensions/`.
-3. Check `Developer mode`.
-4. Clikc *Load extensions from location...*.
-5. With file exploratore navigate to `build` catalog.
+3. Select (check) `Developer mode`.
+4. Click: `Load extensions from location...`.
+5. With file explorator navigate to `build` catalog.
