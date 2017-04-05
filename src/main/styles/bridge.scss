@@ -82,8 +82,9 @@ $separator: #e7e7ea;
   }
 
   &__outliner {
-    width: 100%;
+    width: 100%;    
     height: 100%;
+    position: relative;
   }
 
   // ---- WORKSPACE ---------------

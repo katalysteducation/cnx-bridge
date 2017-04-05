@@ -19,7 +19,7 @@ export default function inlineRules () {
 
       quote (value, content) {
         counter++;
-        inlineStore[counter] = value;
+        inlineStore[counter] = value.replace(/<quote/g, '<quote contenteditable="false"');
         return `#%${counter}%#`;
       },
 

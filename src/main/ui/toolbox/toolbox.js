@@ -19,8 +19,10 @@ div >
 
 const scaffold = `
   div >
-    button[title="Lates Revision" data-action="revision" data-index="1"]
+    button[title="Lates Revision" data-action="revision" data-index="0"]
       i.material-icons > "rate_review"
+    button[title="Comments" data-action="refs" data-index="1"]
+      i.material-icons > "chat"
 `;
 
 export default (function Toolbox (...panels) {

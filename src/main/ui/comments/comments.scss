@@ -1,0 +1,136 @@
+.cnxb-comments {
+  padding: 10px 0;
+}
+
+.cnxb-comment {
+  font-size: 14px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #ccc;
+  font-family: 'Roboto', Tahoma, sans-serif;
+
+  & .cnxb-comment {
+    margin-bottom: 5px;
+    padding-bottom: 0px;
+    border-bottom: none;
+  }
+
+  &-reply {
+    color: #ccc;
+    margin-right: 10px;
+  }
+
+  h4 {
+    margin: 0px;
+    font-size: 17px;
+    line-height: 21px;
+  }
+
+  &-date {
+    color: #999;
+    font-size: 12px;
+  }
+
+  &-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin: 0 9px 0 5px;
+    display: inline-block;
+    background:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAwCAYAAABjezibAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAmxJREFUeNrMWd1xwyAMdnJ9D50gbBA2KCN4BI/iETKCR/AIzgbOBu4EpRO4dk+5ozphEMJJdaeHBARfJPSbwzzPlYBqYLvwGa19Ljws3APn0Qowg+uFpzmdJpBh35UDrpvzqePed2CYWIHJLsTaas4ReCUDfCb23uFJuNImpjQ3RkxXw55sTaaCa4hLrowfdyXkm1IA1cJOAC4E0sHZYoBYe0Om51cgy9JiyqH4DVkBQMv9sSlePCMPNJWMRhQJDlubj5HDLPrcV3LqI3ewAGKaCgBkncEF6P47QFMAoC0JcNwBoInc8YdSvHhCOfVdYOo1n3+hHK6lJsZe1wq017KjQkJw1UQetQWC9AxnFykWqDxqGOBMbj5PvUAFKug2kvAV7KEqbFW6YDVQsJ7Q998Ld7DmPGdYw0kT2G9j3pvbkxhmL0Jpzuzdk6jMvqRLNasUoO+VHfH4sTN1khLtIOyL/fSlvaA7AQ/Sg0sB3I3edtBeVVKLOQC1N/L4SJS5eSMQXk3JeLBaOFXwvVmX9GIV6GuldE0JOzEnMZAlLoH1O5hthCwyec9AgXwdkW82s0pkbOECsa3lmAn2thvn1VwTNxKzZD6XJhUgVRo5YcNOZSGXUsKlzGFGboJnFB5jbF6DhXpCQO8Azn+bWCF9CCBVkpsdwfmaDLYUW5On9gngHtyGhkoh7U1PBPfgidLio+1sCraWpVrSxi+3nNc7RJvpHckfEqy9izpCuXQqPGIrMZpbMdkjMcwZXggQ3/0LUP9jgJoC6F4I0FEAceX7arrh6ZZLndU9iXwMbg0zj//gRiIevoo6KHbtjwADAANtK+8bKomvAAAAAElFTkSuQmCC');
+    background-size: 28px;
+    background-repeat: no-repeat;
+    background-position: center 4px;
+  }
+
+  &-header {
+    position: relative;
+  }
+
+  &-heading {
+    display: inline-block;
+    margin-bottom: 10px;
+  }
+
+  &-buttons {
+    right: 0;
+    top: 7px;
+    position: absolute;
+
+    & button {
+      border: none;
+      cursor: pointer;
+      background: none;
+
+      &:hover {
+        color: #ddd;
+      }
+
+      &:focus {
+        outline: none;
+      }
+    }
+  }
+
+  &-message {
+    color: #444;
+    padding-left: 45px;
+  }
+
+  &-responses {
+    margin: 10px 0;
+    padding-left: 40px;
+  }
+
+  &-response {
+    display: flex;
+    margin-left: 5px;
+    background: white;
+    border: 1px solid #ccc;
+
+    & input {
+      flex-grow: 1;
+      padding: 8px;
+      border: none;
+
+      &:focus {
+        outline: none;
+      }
+    }
+
+    & button {
+      border: none;
+      margin: 3px 0;
+      padding: 0 7px;
+      cursor: pointer;
+      background: white;
+      border-radius: 50%;
+      margin-right: 3px;
+      transition: background .3s ease;
+
+      &:hover {
+        background: #ccc;
+      }
+
+      &:focus {
+        outline: none;
+      }
+
+      &.cancel {
+        color:#ee3413;
+        &:hover {
+          color: white;
+          background: #ee3413;
+        }
+      }
+
+      &.accept {
+        color: #50da3a;
+        &:hover {
+          color: white;
+          background: #50da3a;
+        }
+      }
+    }
+  }
+}

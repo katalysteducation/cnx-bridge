@@ -1,8 +1,8 @@
-$toggle-active: #3174f1;
+$toggle-active: #ffde00;
 
 .cnxb-toggle {
   display: inline-block;
-  
+
   & > input {
     position: absolute;
     margin-left: -9999px;
@@ -13,14 +13,14 @@ $toggle-active: #3174f1;
     }
 
     &:checked + label:after {
-      margin-left: 19px;
-      background-color: $toggle-active;
+      margin-left: 16px;
+      background-color: white;
     }
 
     & + label {
       padding: 2px;
-      width: 40px;
-      height: 20px;
+      width: 30px;
+      height: 14px;
       display: block;
       cursor: pointer;
       outline: none;
@@ -30,30 +30,19 @@ $toggle-active: #3174f1;
       background-color: #dddddd;
       transition: background 0.4s;
 
-      &:before,
       &:after {
         content: "";
         display: block;
         position: absolute;
       }
 
-      &:before {
+      &:after {
         top: 2px;
         left: 2px;
         bottom: 2px;
-        right: 2px;
-        border-radius: 60px;
-        background-color: #fff;
-        transition: background 0.4s;
-      }
-
-      &:after {
-        top: 4px;
-        left: 4px;
-        bottom: 4px;
-        width: 16px;
+        width: 14px;
         border-radius: 52px;
-        background-color: #dddddd;
+        background-color: white;
         transition: margin 0.4s, background 0.4s;
       }
     }

@@ -6,6 +6,7 @@ import Storage from "./storage";
 import Panels from "../ui/panels";
 import Toolbar from "../ui/toolbar";
 import Toolbox from "../ui/toolbox";
+import Comments from "../ui/comments";
 import pscroll from "perfect-scrollbar";
 
 // Editors.
@@ -68,7 +69,7 @@ export default function Bridge (root) {
 
   // UI's panels switcher.
   const contentPanels = Panels(Content.element);
-  const outlinerPanels = Panels(Revision.element);
+  const outlinerPanels = Panels(Revision.element, Comments.element);
 
   // Tools DOM references (travrs' refs).
   const tools = {
@@ -178,6 +179,11 @@ export default function Bridge (root) {
     diffs = mergeSameSiblings(Array.from(Content.element.querySelectorAll('del, ins')));
   };
 
+  const switchOutlinerPanels = (event) => {
+    const {tab, index} = event.detail;
+    outlinerPanels.select(index);
+  };
+
 
   // ---- PUBSUB HANDLES -------------------
 
@@ -193,11 +199,15 @@ export default function Bridge (root) {
     // Revision listeners.
     Revision.element.addEventListener('click', compareVerions);
 
+    // Toolbox listeners.
+    Toolbox.element.addEventListener('switch-tab', switchOutlinerPanels);
+
     // Keyboard listeners.
     root.addEventListener('keyup', keyboardHandles);
 
     // Set scrollbars from PerfectScroll lib.
     pscroll.initialize(contentPanels.view, { suppressScrollX: true });
+    pscroll.initialize(outlinerPanels.view.parentNode, { suppressScrollX: true });
 
     // PubSub listeners.
     pubsub.subscribe('editor.dismiss', select.dismiss);
