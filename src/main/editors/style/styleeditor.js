@@ -11,6 +11,20 @@ const scaffold = `
     @comment
 `;
 
+// const styleScaffold =`
+//   div.active.cnxb-style-editor__styles >
+//     button.cnxb-math-editor__accept[title="Bold text" data-action="bold"]
+//       i.material-icons > "format_bold"
+//     button.cnxb-math-editor__accept[title="Italic text" data-action="italic"]
+//       i.material-icons > "format_italic"
+//     button.cnxb-math-editor__accept[title="Term" data-action="term"]
+//       i.material-icons > "star_border"
+// `;
+
+
+// button.cnxb-math-editor__accept[title="Reference" data-action="ref"]
+//   i.material-icons > "swap_calls"
+
 const styleScaffold =`
   div.active.cnxb-style-editor__styles >
     button.cnxb-math-editor__accept[title="Bold text" data-action="bold"]
@@ -19,22 +33,10 @@ const styleScaffold =`
       i.material-icons > "format_italic"
     button.cnxb-math-editor__accept[title="Term" data-action="term"]
       i.material-icons > "star_border"
+    button.cnxb-math-editor__accept[title="Add comment" data-action="comment"]
+      i.material-icons > "forum"
+    p.cnxb-style-editor__comment[contenteditable="true"]
 `;
-
-// const styleScaffold =`
-//   div.active.cnxb-style-editor__styles >
-//     button.cnxb-math-editor__accept[title="Bold text" data-action="bold"]
-//       i.material-icons > "format_bold"
-//     button.cnxb-math-editor__accept[title="Italic text" data-action="italic"]
-//       i.material-icons > "format_italic"
-//     button.cnxb-math-editor__accept[title="Reference" data-action="ref"]
-//       i.material-icons > "swap_calls"
-//     button.cnxb-math-editor__accept[title="Term" data-action="term"]
-//       i.material-icons > "star_border"
-//     button.cnxb-math-editor__accept[title="Add comment" data-action="comment"]
-//       i.material-icons > "forum"
-//     p.cnxb-style-editor__comment[contenteditable="true"]
-// `;
 
 
 const comnentsScaffold = `
@@ -69,7 +71,7 @@ export default function StyleEditor (pubsub) {
   };
 
   // Supported inline styles.
-  const types = ['term', 'emphasis', 'ref', 'comment'];
+  const types = ['term', 'emphasis', 'ref', 'quote'];
 
   // Toglle Panels.
   const activateStylePanel = (flag) => {
@@ -89,7 +91,7 @@ export default function StyleEditor (pubsub) {
     term: style('term', types, pubsub),
     bold: style('emphasis[effect="bold"]', types, pubsub),
     italic: style('emphasis[effect="italic"]', types, pubsub),
-    commentStyle: style('comment', types, pubsub),
+    commentStyle: style('quote', types, pubsub),
 
     comment (state) {
       activateStylePanel(refs.comment.classList.contains('active'));
@@ -98,18 +100,16 @@ export default function StyleEditor (pubsub) {
 
     save (state) {
       // Publish message.
-      pubsub.publish('editor.update', {
-        type: 'add',
-        action: 'comment',
+      pubsub.publish('add.comment', {
         ref: state.parent,
-        content: crefs.input.textContent,
         parent: state.parent.parentNode,
+        content: crefs.input.textContent
       });
       return state;
     },
 
     cancel (state) {
-      pubsub.publish('editor.update', {type: 'close'});
+      pubsub.publish('editor.dismiss');
       return actions[state.action](state, state.action);
     }
   };
@@ -138,7 +138,12 @@ export default function StyleEditor (pubsub) {
 
     // Activate Style Panel & set current state;
     activateStylePanel(true);
-    state = { parent: range.commonAncestorContainer.parentNode, range, content, action: undefined };
+    state = {
+      range,
+      content,
+      action: undefined,
+      parent: range.commonAncestorContainer.parentNode
+    };
   };
 
   return { element, select };

@@ -9,14 +9,14 @@ const getModuleId = () => {
 };
 
 // Create module if not exist.
-const verifyModule = (username, avatar) => (response) => {
+const verifyModule = (user, avatar) => (response) => {
   // If response contains Error object with module-not-exist code (409)
   // then create requested module in archive and fetch it again.
   if (response.error && response.code === 409)
     return client.set.module({
       module_id: 0,
       avatar: avatar,
-      user: username,
+      user: user,
       date: date(true),
       module_cnx_id: response.module_id
     })
@@ -43,19 +43,19 @@ const addRevision = (currentModule, configuration) => (content, comments) =>
       module.revisions.push({
         revision_id: 0,
         date: date(true),
-        user: config.username,
-        comments: JSON.stringify(comments),
+        user: config.user,
+        comments: comments,
         content: content.replace(/"/g, '\"')
       });
       return module;
     });
 
 // Try to reconnect.
-const reconnect = (username, pin) => (response) => {
+const reconnect = (user, pin) => (response) => {
   // Remove old token.
   client.signout();
-  // Authorize with old PIN na username.
-  return client.authorize(username, pin)
+  // Authorize with old PIN na user.
+  return client.authorize(user, pin)
   .then (token => {
     console.log('Reconnected...');
     chrome.storage.sync.set({ token: token });
@@ -101,13 +101,13 @@ const saveLocalCopy = (module) => {
 
 // Fetch current configuration and convert it to the promise.
 const getCurrentConfig = () => new Promise((resolve) =>
-  chrome.storage.sync.get(({ username, avatar, token, pin, backend }) =>
-    resolve({ username, avatar, token, pin, backend, status : ((!pin && !token) ? 'signed-out' : 'active') })
+  chrome.storage.sync.get(({ user, avatar, token, pin, backend }) =>
+    resolve({ user, avatar, token, pin, backend, status : ((!pin && !token) ? 'signed-out' : 'active') })
   ));
 
 // Get Curent Module from Archive.
 // If Bridge have access to backend and all required credentials, then test the connection against server close session.
-const getCurrentModule = ({ username, status, token, pin, avatar }) => {
+const getCurrentModule = ({ user, status, token, pin, avatar }) => {
   // Fail if state is inactive.
   if (status !== 'active') throw 'Storage :: No acces to Archive server.';
   // Get module id.
@@ -117,11 +117,11 @@ const getCurrentModule = ({ username, status, token, pin, avatar }) => {
   // Test if Bridge can establish connection with archive.
   return client.get.test()
     // Reconnect if user not authorised.
-    .catch(reconnect(username, pin))
+    .catch(reconnect(user, pin))
     // Get mofule from the Archive.
     .then(resp => client.get.module(id))
     // If module does not exist create one and return it.
-    .catch(verifyModule(username, avatar));
+    .catch(verifyModule(user, avatar));
 };
 
 
@@ -157,7 +157,7 @@ export default (function Storage() {
   const saveRevision = (revision, comments = {}) =>
     updateCurrentModule(revision, comments)
       .then(saveLocalCopy)
-      // .then(client.set.module)
+      .then(client.set.module)
       .catch(console.error);
 
 
@@ -177,7 +177,7 @@ export default (function Storage() {
   // Public API.
   return {
     // Getters.
-    config,   // prop -> Promise: { username, avatar, token, pin, backend, status }
+    config,   // prop -> Promise: { user, avatar, token, pin, backend, status }
     legacy,   // func -> Promise: { content, metadata }
     latest,   // prop -> Promise: { module.revisions.last }
     history,  // prop -> Promise: { module.revisions - 1 }

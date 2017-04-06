@@ -240,6 +240,17 @@ export const revisionToObject = (revision) => {
 };
 
 
+// Move nodes 'from' node 'to' node.
 export const moveNodes = (from, to) => {
   while(from.childNodes.length > 0) to.appendChild(from.firstChild);
-}
+};
+
+// Modifier function with memory.
+export const Memo = (modifier, previous) => {
+  if (typeof modifier !== 'function') throw "Modifier need to be a function.";
+  return (current) => {
+    const result = modifier(current, previous);
+    previous = current;
+    return result;
+  }
+};

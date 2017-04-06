@@ -119,10 +119,13 @@ export default function Bridge (root) {
     if (event.altKey && event.key === 'u')
       Storage.config.then(console.log);
 
+    // Alt + c -> Show all coments.
+    if (event.altKey && event.key === 'c')
+      console.log(JSON.stringify({comments: Comments.pull()}));
+
     // Alt + q -> Clear module: 2357341580.
-    if (event.altKey && event.key === 'q'){
+    if (event.altKey && event.key === 'q')
       Storage.clearModule(2357341580).then(console.log);
-    }
 
     // Alt + x -> Show current CNXML.
     if (event.altKey && event.key === 'x') {
@@ -185,15 +188,55 @@ export default function Bridge (root) {
   };
 
 
+  const scroll = (event) => {
+    outlinerPanels.view.scrollTop = event.detail.top - 10;
+    pscroll.update(outlinerPanels.view);
+  };
+
+  // Detect clicked element.
+  const detectElement = (event) => {
+    // Detect click on Comment node;
+    if (event.target.matches('quote[type=comment]')) {
+      const comment = Comments.select(event.target.id);
+      outlinerPanels.view.scrollTop = comment.offsetTop - 10;
+      pscroll.update(outlinerPanels.view);
+    }
+  };
+
+  // Remove comment from content.
+  const removeComment = (event) => {
+    if (event.detail.id) {
+      const commnet = document.getElementById(event.detail.id);
+      commnet ? commnet.outerHTML = commnet.innerHTML : Messenger.log('Commen does not exist in content');
+    }
+  };
+
   // ---- PUBSUB HANDLES -------------------
 
+  const addNewComment = ({ref, content}) => {
+    const id = uid();
+    ref.id = id;
+    ref.setAttribute('type', 'comment');
+    ref.setAttribute('display', 'inline');
+    ref.setAttribute('contenteditable', false);
+
+    Comments.add(id, content);
+  }
+
+  // ---- FIRST RUN ------------------------
+
+  const firstRun = ([latest]) => {
+    Comments.fill(latest.comments);
+  };
 
 
-  // ---- Initialize method ----------------
+  // ---- Initialize -----------------------
 
   // Setup event listeners & communication channels.
   const Initialize = (cnxml) => new Promise(resolve => {
+
     // Content listeners.
+    Content.element.addEventListener('click', detectElement);
     Content.element.addEventListener('mouseup', selectEditable);
 
     // Revision listeners.
@@ -202,14 +245,19 @@ export default function Bridge (root) {
     // Toolbox listeners.
     Toolbox.element.addEventListener('switch-tab', switchOutlinerPanels);
 
+    // Comments listeners.
+    Comments.element.addEventListener('scroll-to', scroll);
+    Comments.element.addEventListener('remove', removeComment);
+
     // Keyboard listeners.
     root.addEventListener('keyup', keyboardHandles);
 
     // Set scrollbars from PerfectScroll lib.
     pscroll.initialize(contentPanels.view, { suppressScrollX: true });
-    pscroll.initialize(outlinerPanels.view.parentNode, { suppressScrollX: true });
+    pscroll.initialize(outlinerPanels.view, { suppressScrollX: true });
 
     // PubSub listeners.
+    pubsub.subscribe('add.comment', addNewComment);
     pubsub.subscribe('editor.dismiss', select.dismiss);
 
     // Finish.
@@ -240,29 +288,33 @@ export default function Bridge (root) {
     const cnxmlContent = toCNXML(Content.element);
     // Save data.
     Storage
-      .saveRevision(cnxmlContent, { hello: "comment"})
+      .saveRevision(cnxmlContent, Comments.pull())
       .then(success => Storage.saveCnxml(cnxmlContent));
   };
 
   // Reload data in Bridge's workspace.
   const reload = () => {
+    // Aplpy new content.
     appendContent(Storage.legacy().content);
-    // Rerender Math.
+    // Re-render Math.
     tools.proxy.dataset.reRender = true;
     // Open Bridge UI if closed.
     if (!root.classList.contains('passive')) toggle();
   }
 
-  // ---- Start APP -----------------
+  // ---------------------------------
+  // ---- STAR UP THE APP ------------
+  // ---------------------------------
 
   Promise.all([
-    // Initialzie app.
-    Initialize(BridgeState.current).then(appendContent),
     // If have access to Archive fetch latest & compare verions.
-    Storage.latest
+    Storage.latest,
+    // Initialzie commnets.
+    Storage.config.then(Comments.user),
+    // Initialzie app.
+    Initialize(BridgeState.current).then(appendContent)
   ])
-  // .then(initialComparisons)
-  // .then(Revision.applyData)
+  .then(firstRun)
   .catch(console.warn);
 
   // Public API.

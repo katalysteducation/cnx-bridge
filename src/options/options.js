@@ -1,29 +1,29 @@
 import client from "../utilities/client";
 require('./options.scss');
 
-const usernameInput = document.getElementById('username');
 const backendInput = document.getElementById('backend');
 const avatarInput = document.getElementById('avatar');
 const messages = document.getElementById('messages');
 const connect = document.getElementById('connect');
+const userInput = document.getElementById('user');
 const pinInput = document.getElementById('pin');
 const color = document.getElementById('color');
 
 const lockPanel = () => {
   connect.innerHTML = "Connected";
-  usernameInput.disabled = true;
-  avatarInput.disabled = false;
-  pinInput.disabled = true;
-  connect.disabled = true;
   messages.innerHTML = '';
+  connect.disabled = true;
+  pinInput.disabled = true;
+  userInput.disabled = true;
+  avatarInput.disabled = false;
 };
 
 const unlockPanel = () => {
   connect.innerHTML = "Save";
-  usernameInput.disabled = false;
-  avatarInput.disabled = false;
-  pinInput.disabled = false;
   connect.disabled = false;
+  pinInput.disabled = false;
+  userInput.disabled = false;
+  avatarInput.disabled = false;
 };
 
 const errorHandle = (error) => {
@@ -32,15 +32,15 @@ const errorHandle = (error) => {
 };
 
 const connectToArchive = (event) => {
-  if (usernameInput.value.length > 0 && pinInput.value.length > 0)
-    client.authorize(usernameInput.value, pinInput.value)
+  if (userInput.value.length > 0 && pinInput.value.length > 0)
+    client.authorize(userInput.value, pinInput.value)
       .then(token => {
         chrome.storage.sync.set({
           token: token,
           pin: pinInput.value,
+          user: userInput.value,
           avatar: avatarInput.value,
-          backend: backendInput.value,
-          username: usernameInput.value
+          backend: backendInput.value
         }, lockPanel);
       })
       .catch(errorHandle);
@@ -51,7 +51,7 @@ const diconnectBridge = (event) => {
   // Shift + D - Clear all data in chrome.storage.
   if (event.shiftKey && event.keyCode === 68) {
     chrome.storage.sync.clear();
-    usernameInput.value = '';
+    userInput.value = '';
     pinInput.value = '';
     client.signout();
     unlockPanel();
@@ -68,10 +68,10 @@ const diconnectBridge = (event) => {
 
 
 const loadOptions = () => {
-  chrome.storage.sync.get(({ pin = '', username = '', avatar = '#666666', token}) => {
-    usernameInput.value = username;
-    avatarInput.value = avatar;
+  chrome.storage.sync.get(({ pin = '', user = '', avatar = '#666666', token}) => {
     pinInput.value = pin;
+    userInput.value = user;
+    avatarInput.value = avatar;
     color.style.background = avatar;
 
     if (!token) {

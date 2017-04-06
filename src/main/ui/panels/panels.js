@@ -2,12 +2,14 @@ import { createElement } from "../../../utilities/travrs";
 
 export default function Panels (...panels) {
   const view = createElement('div.cnxb-panels');
+  const wrapper = createElement('div.cnxb-panels-wrapper');
+  view.appendChild(wrapper);
 
   const select = (id) => {
     // Clear wrapper.
-    if (view.firstChild) view.removeChild(view.firstChild);
+    if (wrapper.firstChild) wrapper.removeChild(wrapper.firstChild);
     // Append new content.
-    if (panels[id] && panels[id] instanceof HTMLElement) view.appendChild(panels[id]);
+    if (panels[id] && panels[id] instanceof HTMLElement) wrapper.appendChild(panels[id]);
   }
 
   select(0);

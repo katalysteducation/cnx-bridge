@@ -29,6 +29,11 @@ quote[type=comment] {
   background: #ffde00;
   display: inline-block;
   user-select: none !important;
+  transition: background .3s ease;
+
+  &.active {
+    background: #ff9800;
+  }
 }
 
 // ---- Titles ----------------

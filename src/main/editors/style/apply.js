@@ -9,15 +9,15 @@ export default function style (selector, types, pubsub) {
       if (state.parent.matches(selector)) {
         // console.log('Remove style');
         state.parent.outerHTML = state.parent.innerHTML;
-
-        // Publish message.
-        pubsub.publish('editor.update', {
-          action,
-          type: 'remove',
-          ref: undefined,
-          parent: state.parent.parentNode,
-          content: state.parent.innerHTML,
-        });
+        //
+        // // Publish message.
+        // pubsub.publish('editor.update', {
+        //   action,
+        //   type: 'remove',
+        //   ref: undefined,
+        //   parent: state.parent.parentNode,
+        //   content: state.parent.innerHTML,
+        // });
       }
       else {
         // console.log('Replace styles');
@@ -25,15 +25,15 @@ export default function style (selector, types, pubsub) {
         state.parent.parentNode.insertBefore(_parent, state.parent)
         state.parent.parentNode.removeChild(state.parent);
         state.range.selectNodeContents(_parent);
-
-        // Publish message.
-        pubsub.publish('editor.update', {
-          action,
-          ref: _parent,
-          type: 'replace',
-          content: _parent.innerHTML,
-          parent: _parent.parentNode,
-        });
+        //
+        // // Publish message.
+        // pubsub.publish('editor.update', {
+        //   action,
+        //   ref: _parent,
+        //   type: 'replace',
+        //   content: _parent.innerHTML,
+        //   parent: _parent.parentNode,
+        // });
       }
     }
     // No wrapper - apply style.
@@ -41,16 +41,16 @@ export default function style (selector, types, pubsub) {
       // console.log('Apply styles');
       _parent = createElement(selector);
       state.range.surroundContents(_parent);
-
-      // Publish message.
-      pubsub.publish('editor.update', {
-        action,
-        type: 'new',
-        ref: _parent,
-        content: _parent.innerHTML,
-        parent: _parent.parentNode,
-      });
+      //
+      // // Publish message.
+      // pubsub.publish('editor.update', {
+      //   action,
+      //   type: 'new',
+      //   ref: _parent,
+      //   content: _parent.innerHTML,
+      //   parent: _parent.parentNode,
+      // });
     }
-    return {range: state.range, parent: _parent, action: action };
+    return { range: state.range, parent: _parent, action: action };
   };
 };

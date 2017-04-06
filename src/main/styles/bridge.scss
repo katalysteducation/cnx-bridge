@@ -44,9 +44,10 @@ $separator: #e7e7ea;
   // ---- NAVIGATOR ----------------
 
   &__navigator {
-    width: 390px;
     height: 100%;
+    width: 320px;
     display: block;
+    min-width: 320px;
     font-weight: 400;
     position: relative;
   }
@@ -82,9 +83,13 @@ $separator: #e7e7ea;
   }
 
   &__outliner {
-    width: 100%;    
+    width: 100%;
     height: 100%;
-    position: relative;
+
+    & .cnxb-panels {
+      height: 100%;
+      position: relative;
+    }
   }
 
   // ---- WORKSPACE ---------------
@@ -92,6 +97,7 @@ $separator: #e7e7ea;
   &__workspace {
     width: 100%;
     height: 100%;
+    flex-grow: 1;
     color: #282828;
     font-size: 15px;
     line-height: 23px;

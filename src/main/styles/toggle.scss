@@ -9,26 +9,34 @@ $toggle-active: #ffde00;
     visibility: hidden;
 
     &:checked + label {
+      color: #333;
       background-color: $toggle-active;
     }
 
     &:checked + label:after {
-      margin-left: 16px;
+      margin-left: 35px;
       background-color: white;
     }
 
     & + label {
       padding: 2px;
-      width: 30px;
+      width: 45px;
       height: 14px;
+
+      color: #ddd;
+      font-size: 9px;
+      line-height: 15px;
+      padding-left: 6px;
+      font-weight: bold;
+
       display: block;
-      cursor: pointer;
       outline: none;
+      cursor: pointer;
       user-select: none;
       position: relative;
       border-radius: 60px;
-      background-color: #dddddd;
-      transition: background 0.4s;
+      background-color: #ddd;
+      transition: background 0.4s, color 0.4s;
 
       &:after {
         content: "";

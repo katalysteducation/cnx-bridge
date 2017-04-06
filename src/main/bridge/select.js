@@ -95,7 +95,7 @@ export default function Select (root, editors) {
 
     // Get selection.
     const selection = window.getSelection();
-    const range = selection.getRangeAt(0);
+    const range = selection.anchorNode ? selection.getRangeAt(0) : new Range();
 
     // Bail if no selection.
     if (event.target.dataset.select) range.selectNode(event.target);

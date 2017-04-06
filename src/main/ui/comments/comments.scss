@@ -3,11 +3,30 @@
 }
 
 .cnxb-comment {
+  opacity: 1;
   font-size: 14px;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
+  background: none;
+  max-height: 1200px;
+  margin-bottom: 15px;
+  padding: 5px 10px 20px 0;
   border-bottom: 1px solid #ccc;
+  border-left: 0px solid #3174f1;
   font-family: 'Roboto', Tahoma, sans-serif;
+  transition: border-left .3s, background .3s, top .4s ease;
+
+  &.active {
+    background: #e3e3e3;
+    border-bottom: none;
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 2px;
+    border-left: 5px solid #3174f1;
+  }
+
+  &.remove {
+    transition: transform .5s ease, opacity .3s linear;
+    transform: scale(0.5);
+    opacity: 0;
+  }
 
   & .cnxb-comment {
     margin-bottom: 5px;
@@ -75,6 +94,7 @@
   &-message {
     color: #444;
     padding-left: 45px;
+    word-wrap: break-word;
   }
 
   &-responses {
