@@ -25,8 +25,7 @@ export default function findWidows (node, labels = false, path = '') {
 
       // Wrap widowed text with quote-wrapper container.
       if (node.children.length > 1) {
-        const wrappWidow = createElement(`div[data-type="quote" type="wrapp" display="inline"]`);
-        wrappWidow.id = uid();
+        const wrappWidow = createElement(`div[id="${uid()}" data-type="quote" type="wrapp" display="inline"]`);
         child.dataset.path = path.slice(0,-1) + '.quote';
         child.dataset.pid = wrappWidow.id;
         node.insertBefore(wrappWidow, child);

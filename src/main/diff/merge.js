@@ -23,12 +23,12 @@ export const mergeSameSiblings = (list) =>
 const isOnlyChild = (node) => !node.nextElementSibling && !node.prevElementSibling;
 
 
-const isNodeToRemove = (node) => node.children.length === 0 || node.tagName === 'DEL' || node.tagName === 'INS'
+const isNodeToRemove = (node) => node.childNodes.length === 0 || node.tagName === 'DEL' || node.tagName === 'INS'
 
 // Remove tree branch.
 const removeFromTree = (node) => {
   const parent = node.parentNode;
-  if (isNodeToRemove(node)) {
+  if (parent && isNodeToRemove(node)) {
     parent.removeChild(node);
     removeFromTree(parent);
   }

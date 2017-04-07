@@ -73,7 +73,7 @@ export default function toHTML (template) {
     // Replace self-closing tags. !! Except <newline/>
     .replace(/<(.|\n)*?>/g, selfClosingTags)
     // Replace quote-wrappers with <wrapp> element -> this allow to avoid parser's confusion with quote-comments.
-    .replace(/<quote[\S\s\w]+?type="wrapp"[\S\s\w]+?<\/quote>/g, (value) => value.replace(/quote/g, 'wrapp'))
+    .replace(/<quote type="wrapp"[\S\s\w]+?>[\S\s\w]+?<\/quote>/g, (value) =>  value.replace(/quote/g, 'wrapp'))
     // Replace MATHML open-tag / close-tag marker.
     .replace(/(<m:)|(<\/m:)/g, (match) => ~match.indexOf('/') ? '</' : '<')
     // Remove newlines.

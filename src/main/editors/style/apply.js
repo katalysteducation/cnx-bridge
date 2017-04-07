@@ -9,6 +9,7 @@ export default function style (selector, types, pubsub) {
       if (state.parent.matches(selector)) {
         // console.log('Remove style');
         state.parent.outerHTML = state.parent.innerHTML;
+        pubsub.publish('editor.dismiss');
         //
         // // Publish message.
         // pubsub.publish('editor.update', {

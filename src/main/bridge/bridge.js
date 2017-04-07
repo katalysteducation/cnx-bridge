@@ -4,9 +4,11 @@ import Storage from "./storage";
 
 // UI Compoenents.
 import Panels from "../ui/panels";
+import History from "../ui/history";
 import Toolbar from "../ui/toolbar";
 import Toolbox from "../ui/toolbox";
 import Comments from "../ui/comments";
+import Revision from "../ui/revision";
 import pscroll from "perfect-scrollbar";
 
 // Editors.
@@ -18,9 +20,9 @@ import MergeEditor from "../editors/merge";
 import diff from "../diff";
 import PubSub from "../../utilities/pubsub";
 import {toHTML, toCNXML, findWidows} from "../parser";
-import {uid, date, getNodesOut} from "../../utilities/tools";
 import {template, createElement} from "../../utilities/travrs";
 import {mergeSameSiblings, rejectAllChanges} from "../diff/merge";
+import {uid, date, getNodesOut, Memo} from "../../utilities/tools";
 
 require('../styles/bridge.scss');
 
@@ -46,11 +48,6 @@ const Content = {
 }
 
 // FIXME: Implement this as component.
-const Revision = {
-  element : createElement('div', createElement('button.revbtn[data-compare="true"]', 'Compare versions'))
-}
-
-// FIXME: Implement this as component.
 const Messenger = {
   log (message) { console.log(message)}
 }
@@ -69,18 +66,16 @@ export default function Bridge (root) {
 
   // UI's panels switcher.
   const contentPanels = Panels(Content.element);
-  const outlinerPanels = Panels(Revision.element, Comments.element);
+  const outlinerPanels = Panels(Revision.element, Comments.element, History.element);
 
   // Tools DOM references (travrs' refs).
   const tools = {
     // Left-hand side menu.
     toolbox: Toolbox.element,
     outliner: outlinerPanels.view,
-
     // Workspace.
     toolbar: Toolbar.element,
     content: contentPanels.view,
-
     // Hidden input -> MathJax connection.
     proxy: createElement('input#InputProxy[type="hidden", data-math-id="true"]')
   };
@@ -125,6 +120,7 @@ export default function Bridge (root) {
 
     // Alt + q -> Clear module: 2357341580.
     if (event.altKey && event.key === 'q')
+      // Storage.clearModule(9655866818).then(console.log);
       Storage.clearModule(2357341580).then(console.log);
 
     // Alt + x -> Show current CNXML.
@@ -135,27 +131,18 @@ export default function Bridge (root) {
 
   };
 
-  const compareVerions = (event) => {
-    // Do not comare if other button than compare was clicked OR if prev. comaratino not ended.
-    if (!event.target.dataset.compare || Content.element.querySelector('del, ins')) return;
-    compare(Storage.restore());
-    tools.proxy.dataset.reRender = true;
-  }
-
 
   // ---- ELEMENTS HANDLES ----------------
 
   // Append new content.
   const appendContent = (content) => {
-    Content.element.innerHTML = toHTML(content)
+    // Create content editable structure.
+    Content.element.innerHTML = toHTML(content);
     findWidows(Content.element);
+    // Re-render Math.
+    tools.proxy.dataset.reRender = true;
   };
 
-  // Compare current Legacy version with previous revision.
-  const initialComparisons = ([content, latest]) => {
-    latest && Content.diff(arrayToObject(latest.content, 'cnx_id'));
-    return latest;
-  }
 
   // FIXME: This is an old implememntation. Need update + add blocking edition when diffing.
   const selectEditable = (event) => {
@@ -180,6 +167,9 @@ export default function Bridge (root) {
 
     // Merge siblings & get only diffs children.
     diffs = mergeSameSiblings(Array.from(Content.element.querySelectorAll('del, ins')));
+
+    // Re-render Math.
+    tools.proxy.dataset.reRender = true;
   };
 
   const switchOutlinerPanels = (event) => {
@@ -188,16 +178,12 @@ export default function Bridge (root) {
   };
 
 
-  const scroll = (event) => {
-    outlinerPanels.view.scrollTop = event.detail.top - 10;
-    pscroll.update(outlinerPanels.view);
-  };
-
   // Detect clicked element.
   const detectElement = (event) => {
     // Detect click on Comment node;
     if (event.target.matches('quote[type=comment]')) {
       const comment = Comments.select(event.target.id);
+      activeComment(event.target);
       outlinerPanels.view.scrollTop = comment.offsetTop - 10;
       pscroll.update(outlinerPanels.view);
     }
@@ -208,6 +194,43 @@ export default function Bridge (root) {
     if (event.detail.id) {
       const commnet = document.getElementById(event.detail.id);
       commnet ? commnet.outerHTML = commnet.innerHTML : Messenger.log('Commen does not exist in content');
+    }
+  };
+
+  const activeComment = new Memo((current, active) => {
+    if (active) active.classList.remove('active');
+    active = current;
+    active.classList.add('active');
+    return active;
+  });
+
+  const scrollCommentInContent = (event) => {
+    if (event.detail.id) {
+      const comment = document.getElementById(event.detail.id);
+      if (comment) {
+        activeComment(comment);
+        contentPanels.view.scrollTop = comment.parentNode.offsetTop + comment.offsetTop;
+        pscroll.update(contentPanels.view);
+      }
+      else Messenger.log('cipr');
+    }
+  };
+
+  const compareRevision = (event) => {
+    const {revision} = event.detail;
+    // Quit if there is no 'revision' OR if prev. comaratino not ended.
+    if (!revision || Content.element.querySelector('del, ins')) return;
+    // Compare revision with current content.
+    compare(revision.content);
+  };
+
+  // Display selected revision.
+  const displayRevision = (event) => {
+    const {revision, label} = event.detail;
+    if (revision) {
+      Toolbar.label(`Revision ${label}`);
+      appendContent(revision.content);
+      Comments.replace(revision.comments);
     }
   };
 
@@ -225,8 +248,13 @@ export default function Bridge (root) {
 
   // ---- FIRST RUN ------------------------
 
-  const firstRun = ([latest]) => {
+  const initialCompare = ([latest]) => {
+    // Quit if not latest revision.
+    if (!latest) return;
+    // Add coments for current revision.
     Comments.fill(latest.comments);
+    // Compare with latest version.
+    compare(latest.content);
   };
 
 
@@ -239,15 +267,20 @@ export default function Bridge (root) {
     Content.element.addEventListener('click', detectElement);
     Content.element.addEventListener('mouseup', selectEditable);
 
-    // Revision listeners.
-    Revision.element.addEventListener('click', compareVerions);
-
     // Toolbox listeners.
     Toolbox.element.addEventListener('switch-tab', switchOutlinerPanels);
 
+    // Revision listeners.
+    Revision.element.addEventListener('display', displayRevision);
+    Revision.element.addEventListener('compare', compareRevision);
+
     // Comments listeners.
-    Comments.element.addEventListener('scroll-to', scroll);
     Comments.element.addEventListener('remove', removeComment);
+    Comments.element.addEventListener('scroll.content', scrollCommentInContent);
+
+    // History listeners.
+    History.element.addEventListener('display', displayRevision);
+    History.element.addEventListener('compare', compareRevision);
 
     // Keyboard listeners.
     root.addEventListener('keyup', keyboardHandles);
@@ -257,7 +290,7 @@ export default function Bridge (root) {
     pscroll.initialize(outlinerPanels.view, { suppressScrollX: true });
 
     // PubSub listeners.
-    pubsub.subscribe('add.comment', addNewComment);
+    pubsub.subscribe('editor.comment', addNewComment);
     pubsub.subscribe('editor.dismiss', select.dismiss);
 
     // Finish.
@@ -274,10 +307,9 @@ export default function Bridge (root) {
 
   // Restroe recent saved module from LocalStorage.
   const recover = () => {
-    // Render restored version.
-    appendContent(Storage.restore());
-    // Rerender Math.
-    tools.proxy.dataset.reRender = true;
+    const restoreModule = Storage.restore();
+    appendContent(restoreModule.content);
+    Comments.replace(restoreModule.comments);
   };
 
   // Save content to the BAD & Legacy.
@@ -296,8 +328,8 @@ export default function Bridge (root) {
   const reload = () => {
     // Aplpy new content.
     appendContent(Storage.legacy().content);
-    // Re-render Math.
-    tools.proxy.dataset.reRender = true;
+    // Clear coments.
+    Comments.replace();
     // Open Bridge UI if closed.
     if (!root.classList.contains('passive')) toggle();
   }
@@ -308,14 +340,17 @@ export default function Bridge (root) {
 
   Promise.all([
     // If have access to Archive fetch latest & compare verions.
-    Storage.latest,
+    Storage.latest.then(Revision.fill),
     // Initialzie commnets.
     Storage.config.then(Comments.user),
     // Initialzie app.
     Initialize(BridgeState.current).then(appendContent)
   ])
-  .then(firstRun)
+  .then(initialCompare)
   .catch(console.warn);
+
+  // Add history antries.
+  Storage.history.then(History.fill);
 
   // Public API.
   return { save, toggle, recover, reload };

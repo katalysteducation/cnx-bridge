@@ -94,8 +94,8 @@ const saveInLegacy = (content, root) => new Promise((resolve, reject) => {
 
 // Save local copy of current CNXML.
 const saveLocalCopy = (module) => {
-  const currentCnxml = module.revisions[module.revisions.length - 1].content;
-  localStorage.setItem('cnx-bridge-backup', JSON.stringify({ date: date(true), cnxml: currentCnxml }));
+  const currentModule = module.revisions[module.revisions.length - 1];
+  localStorage.setItem('cnx-bridge-backup', JSON.stringify({ date: date(true), module: currentModule }));
   return module;
 };
 
@@ -142,10 +142,10 @@ export default (function Storage() {
   const legacy = readCurrentCnxml(document);
 
   // Get all revisions without the latest -> the histroy data.
-  const history = currentModule.then(module => module.revisions.slice(0,-1).reverse());
+  const history = currentModule.then(module => module.revisions.slice(1, module.revisions.length));
 
   // Get the latest revision for current module.
-  const latest = currentModule.then(module => module.revisions.reverse()[module.revisions.length - 1]);
+  const latest = currentModule.then(module => module.revisions.slice(0,1)[0]);
 
   // Create update fn. to update current model with the new revision.
   const updateCurrentModule = addRevision(currentModule, config);
@@ -164,7 +164,7 @@ export default (function Storage() {
   // Get latest saved CNXML from LocalStorage.
   const restore = () => {
     const backup = JSON.parse(localStorage.getItem('cnx-bridge-backup') || false);
-    return backup ? backup.cnxml : undefined;
+    return backup ? backup.module : undefined;
   }
 
   // Save data in Legacy System.

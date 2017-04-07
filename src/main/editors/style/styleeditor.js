@@ -41,10 +41,10 @@ const styleScaffold =`
 
 const comnentsScaffold = `
   div.cnxb-style-editor__comment >
-    button.cnxb-math-editor__accept[title="Cancel comment" data-action="cancel"]
-      i.material-icons > "close"
     button.cnxb-math-editor__accept[title="Save comment" data-action="save"]
       i.material-icons > "check"
+    button.cnxb-math-editor__accept[title="Cancel comment" data-action="cancel"]
+      i.material-icons > "close"
     @input
 `;
 
@@ -99,12 +99,14 @@ export default function StyleEditor (pubsub) {
     },
 
     save (state) {
+      if (crefs.input.textContent.length === 0) return state;
       // Publish message.
-      pubsub.publish('add.comment', {
+      pubsub.publish('editor.comment', {
         ref: state.parent,
         parent: state.parent.parentNode,
         content: crefs.input.textContent
       });
+      pubsub.publish('editor.dismiss');
       return state;
     },
 

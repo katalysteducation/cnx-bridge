@@ -4,8 +4,16 @@ export default function inlineRules () {
   let counter = 0;
   const inlineStore = {};
 
+  // General transformation.
+  const passThrough = (value, content) => {
+    counter++;
+    inlineStore[counter] = value;
+    return `#%${counter}%#`;
+  };
+
+  // Interface.
   return {
-    // hash table.
+    // Hash table.
     store: inlineStore,
 
     // Mini tag's parsers.
@@ -17,41 +25,20 @@ export default function inlineRules () {
         return `#%${counter}%#`;
       },
 
-      quote (value, content) {
-        counter++;
-        inlineStore[counter] = value.replace(/<quote/g, '<quote contenteditable="false"');
-        return `#%${counter}%#`;
-      },
-
-      math (value, content) {
-        counter++;
-        inlineStore[counter] = value;
-        return `#%${counter}%#`;
-      },
-
       link (value, content) {
         counter++;
         inlineStore[counter] = value.replace(/link/g, 'ref');
         return `#%${counter}%#`;
       },
 
-      emphasis (value, content) {
-        counter++;
-        inlineStore[counter] = value;
-        return `#%${counter}%#`;
-      },
-
-      term (value, content) {
-        counter++;
-        inlineStore[counter] = value;
-        return `#%${counter}%#`;
-      },
-
-      newline (value, content) {
-        counter++;
-        inlineStore[counter] = value;
-        return `#%${counter}%#`;
-      }
+      sub: passThrough,
+      sup: passThrough,
+      term: passThrough,
+      math: passThrough,
+      quote: passThrough,
+      newline: passThrough,
+      emphasis: passThrough,
+      footnote: passThrough,
     }
   }
 };

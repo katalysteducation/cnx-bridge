@@ -28,6 +28,8 @@ export const commentEl = ({id, avatar, date, user, note, responses = []}) => {
         h4 > "${user}"
         span.cnxb-comment-date > "${date}"
       div.cnxb-comment-buttons
+        button.cnxb-comment-show[data-scroll="${id}"]
+          i.material-icons > "remove_red_eye"
         div.cnxb-toggle
           input[id="toggle-${id}" type="checkbox" checked="true" data-close="${id}"]
           label[for="toggle-${id}"] > "CLOSE"

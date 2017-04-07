@@ -49,6 +49,7 @@
   // Comment panel
   &__comment {
     display: none;
+    text-align: right;
 
     &.active {
       display: block;
@@ -60,6 +61,7 @@
       width: 200px;
       display: block;
       font-size: 12px;
+      text-align: left;
       min-height: 20px;
       background: #ddd;
       line-height: 16px;
@@ -74,40 +76,13 @@
   }
 }
 
-// ---- CNXML ----------------
 
-term {
-  color: #83a;
-  font-weight: bold;
-}
-
-emphasis[effect="italic"] {
-    font-style: italic;
-}
-
-emphasis[effect="bold"] {
-  font-weight: bold;
-}
-
-ref {
-  color: #49a6f2;
-  text-decoration: underline;
-}
-
-
-del comment {
+del quote[type="comment"] {
   background: none;
   box-shadow: inset 0px -2px 0px 0px #ffde00;
 }
 
-ins comment {
+ins quote[type="comment"] {
   background: none;
   box-shadow: inset 0px -2px 0px 0px #ffde00;
-}
-
-comment {
-  padding: 0 2px;
-  color: #212121;
-  background: #ffde00;
-  display: inline-block;
 }

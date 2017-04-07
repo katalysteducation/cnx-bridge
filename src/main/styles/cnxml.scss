@@ -20,6 +20,12 @@ ref {
   text-decoration: underline;
 }
 
+// ---- Equations ---------------
+
+div[data-type=equation] p {
+  text-align: center;
+}
+
 // ---- Comments ----------------
 
 quote[type=comment] {
@@ -60,15 +66,20 @@ div[data-type=table] {
 }
 
 div[data-type=thead] {
-  background: #DDD;
-  display: table-header-group;
+  width: 100%;
+  display: table;
+  font-weight: bold;
 }
 
+div[data-type=tbody] {
+  display: table;
+  width: 100%;
+}
 
 div[data-type=row] {
   display: table-row;
   &:nth-child(even) {
-    background: #eee;
+    background: #e1e1e1;
   }
 }
 

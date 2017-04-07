@@ -1,6 +1,8 @@
 $toggle-active: #ffde00;
 
 .cnxb-toggle {
+  margin-top: 4px;
+  vertical-align: top;
   display: inline-block;
 
   & > input {

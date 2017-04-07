@@ -3,11 +3,13 @@
   z-index: 3500;
   position: fixed;
   visibility:hidden;
-  transition: visibility 0s linear 0.3s, opacity .3s ease, top .4s ease, left .4s ease;
+  transform: translateZ(0);
+  transition: visibility 0s linear 0.3s, opacity .3s ease, top .4s ease, left .4s ease, transform .3s ease;
 
   &.active {
     opacity: 1;
     visibility:visible;
-    transition: opacity .3s ease, visibility 0s, top .4s ease, left .4s ease;
+    transform: translateZ(0);
+    transition: opacity .3s ease, visibility 0s, top .4s ease, left .4s ease, transform .3s ease;
   }
 }

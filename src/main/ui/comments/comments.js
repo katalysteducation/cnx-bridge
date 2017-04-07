@@ -3,11 +3,18 @@ import {emit, date, Memo} from "../../../utilities/tools";
 import {template, createElement} from "../../../utilities/travrs";
 require('./comments.scss');
 
+// ------------------------------------------------
+// ---- COMMENTS CORE ----------------
+// ------------------------
 
 export default (function Comments () {
   const element = createElement('div.cnxb-comments');
   const commentsList = new Map();
   const userData = {};
+
+  // Create empty placeholder.
+  let empty = element.appendChild(createElement('div.cnxb-empty', 'No comments for this revision'));
+  element.appendChild(empty);
 
   // Active elements' toggler.
   const active = new Memo((current, active) => {
@@ -17,22 +24,36 @@ export default (function Comments () {
     return active;
   });
 
+  const append = (comment) => {
+    if (empty.parentNode) {
+      element.removeChild(empty);
+    }
+    element.appendChild(comment);
+  };
+
   // Detect user's action.
   const detectAction = (event) => {
-    const {response, cancel, close} = event.target.dataset;
+    const {response, cancel, close, scroll} = event.target.dataset;
 
     // Close comment and remove it from display.
     if (close) {
       const comment = event.target.closest('div.cnxb-comment');
       setTimeout(() => {
         comment.classList.add('remove');
-        element.dispatchEvent(emit('remove', {id: close}));
+        element.dispatchEvent(emit('remove', { id: close }));
         setTimeout(() => {
           commentsList.delete(close);
           element.removeChild(comment);
+          if (commentsList.size === 0) element.appendChild(empty);
         }, 300);
       }, 500);
       return;
+    }
+
+    // Send event for scrolling content to the comment position & select active comment.
+    else if (scroll) {
+      element.dispatchEvent(emit('scroll.content', { id: scroll }));
+      select(scroll);
     }
 
     // Add new response.
@@ -78,7 +99,7 @@ export default (function Comments () {
       };
     if (commentsList.has(id)) throw "Duplicated comment ID";
     commentsList.set(id, data);
-    element.appendChild(commentEl(data));
+    append(commentEl(data));
   };
 
   // Get all comments.
@@ -88,14 +109,29 @@ export default (function Comments () {
   const select = (id) =>
     active(element.querySelector(`div[data-comment-id="${id}"]`));
 
-  // Fill commnets from current revision.
-  const fill = (list) =>
-    list.reduce((result, comment) => {
+  // Add comment from list to the display.
+  const fill = (list = []) => {
+    const final = list.reduce((result, comment) => {
       result.set(comment.id, comment);
-      element.appendChild(commentEl(comment));
+      console.log(comment);
+      append(commentEl(comment));
       return result;
     }, commentsList);
+    return final;
+  }
+
+  // Remove comments not presents on the 'list'.
+  const filter = (list) => {
+
+  };
+
+  // Replace existing comments with new list.
+  const replace = (list) => {
+    commentsList.clear();
+    element.innerHTML = '';
+    return fill(list);
+  };
 
   // Pubic API.
-  return { element, user, add, pull, fill, select };
+  return { element, user, add, pull, fill, filter, replace, select };
 }());

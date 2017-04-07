@@ -82,6 +82,8 @@ export default function toCNXML (source) {
     // Remove empty <quote> wrappers areound content. This may apear when inline tags like e.g. <term> are
     // used like block elements fore exampe in <definition>.
     .replace(/<quote>([\s\S\w]+?)<\/quote>/g, (a, match) => match)
+    // Remove all contenteditable nad nbsp.
+    .replace(/(\s*class=".+?"\s*)|(\s*contenteditable=".+?"\s*)|(&nbsp;)/g, '')
     // Restore newline.
     .replace(/<br>/g, '<newline/>');
 };
