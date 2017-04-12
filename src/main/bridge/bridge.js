@@ -120,8 +120,8 @@ export default function Bridge (root) {
 
     // Alt + q -> Clear module: 2357341580.
     if (event.altKey && event.key === 'q')
-      // Storage.clearModule(9655866818).then(console.log);
-      Storage.clearModule(2357341580).then(console.log);
+      Storage.clearModule(9655866818).then(console.log);
+      // Storage.clearModule(2357341580).then(console.log);
 
     // Alt + x -> Show current CNXML.
     if (event.altKey && event.key === 'x') {
