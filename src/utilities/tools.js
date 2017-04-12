@@ -1,7 +1,7 @@
 
 // Get <content> tag from CNXML.
 export const getContent = (cnxml) =>
-  cnxml.slice(cnxml.indexOf('<content>') + 9, cnxml.indexOf('<\/content>'));
+  cnxml.slice(cnxml.indexOf('<content>'), cnxml.indexOf('<\/content>') + 10);
 
 // Get <metadata> tag from CNXML.
 export const getMetadata = (cnxml) =>
@@ -254,3 +254,6 @@ export const Memo = (modifier, previous) => {
     return result;
   }
 };
+
+export const copyAttrs = (from, to) =>
+  Array.from(from.attributes).forEach(attr => to.setAttribute(attr.name, attr.value));

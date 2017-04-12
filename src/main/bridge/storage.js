@@ -5,7 +5,7 @@ import {getContent, getMetadata, date} from "../../utilities/tools";
 const getModuleId = () => {
   const match = window.location.href.match(/-[0-9]{2}.([0-9]+)\//);
   match && console.log('Module detected. ID: ', match[1]);
-  return match ? match[1] : 2357341580; //58272;
+  return match ? match[1] : 9655866818; //2357341580; //58272;
 };
 
 // Create module if not exist.

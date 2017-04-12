@@ -1,7 +1,7 @@
+import {copyAttrs} from "../../utilities/tools";
 import {createElement} from "../../utilities/travrs";
 
-
-// ---- TO CNXML HELPERS ----------------
+// ---- Helpers ----------------
 
 // Find all Bridge-MathJax elements and extract MATHML markup.
 const cleanMath = (source) => {
@@ -11,7 +11,7 @@ const cleanMath = (source) => {
       document.createRange().createContextualFragment(
         element.querySelector('script')
           .textContent
-          // Add MathML namespace
+          // Add MathML namespace. It is just to be consistent with decalrations in Module-cnxml where they are set up anyway.
           .replace(/(\<m)|(\<\/m)/g, (match) => ~match.indexOf('/') ? '</m:m' : '<m:m')
       ),
       element
@@ -31,8 +31,14 @@ const cloneXElement = (clone, node) => {
     // Appned x-tag.
     clone.appendChild(newChild);
   }
-  // Get content form editable & remove <div> elements wrapping <newline>s in Chrome.
-  else clone.innerHTML = node.innerHTML.replace(/<div>|<\/div>/g, (match) => ~match.indexOf('/') ? ' ' : '');
+  // Get content form editable node.
+  else clone.innerHTML = node.innerHTML
+    // Remove all non-breaking sapces.
+    .replace(/&nbsp;/g, '')
+    // Replace break-lines with <newline>NL</newline> element.
+    // For some reason if <newline></newline> does not have content it wraps around text near to it what breaks markup.
+    // Also <br> can't be placed in Editable node in any correct form: <br/> OR <br></br> which also breaks the markup.
+    .replace(/<br>/g, '<newline>NL</newline>');
 };
 
 // Walk through Editable Tree & create 'x-tags' structure, that can be easily trensforemd into CNXML.
@@ -40,18 +46,29 @@ const xClone = (node, clone) => {
   // Skip editables.
   if (node.tagName !== 'P') {
     Array.from(node.children).forEach((child, index) => {
-      // console.log(node, child, clone);
       if (!clone.children[index]) cloneXElement(clone, child);
       if (child.firstChild) xClone(child, clone.children[index])
     });
   }
+  // return root.
+  return clone;
 };
 
-// ---- Replacers ----------------
+// ---- Transformations ----------------
 
-// Replace <ref> tag with <link> tag.
-const restoreReferences = (match, attrs, content) =>
-  content === 'Reference' ? `<link${attrs}/>` : `<link${attrs}>${content}</link>`;
+// Chenge <reference>s into <link> elements.
+const transformRefs = (node) => {
+  // Detect Self-closed <link/>
+  const link = createElement('link', (node.innerHTML !== node.getAttribute('target-id')) ? node.innerHTML : '');
+  copyAttrs(node, link);
+  node.parentNode.replaceChild(link, node);
+};
+
+// Remove attribute inline from <term>
+const transformTerms = (node) => {
+  const term = createElement('term', node.innerHTML);
+  node.parentNode.replaceChild(term, node);
+};
 
 
 // --------------------------------------------
@@ -59,31 +76,32 @@ const restoreReferences = (match, attrs, content) =>
 // ------------------------
 
 // Convert 'source' HTML tree into CNXML string.
-export default function toCNXML (source) {
+export default function toCnxml (htmlNode) {
 
-  const cnxml = createElement('x-section');
-  const sourceClone = cleanMath(source.cloneNode(true));
+  // Clone source HTML node.
+  const sourceClone = cleanMath(htmlNode.cloneNode(true));
 
   // Create x-tag equivalents of CNXML. This will make easier
-  // to translate CNXML elements that aren't compatible with HTML5.
-  xClone(sourceClone, cnxml);
-
-  // Finalize. Trabslate x-tags to cnxml.
-  return cnxml.innerHTML
-    // Remove 'x-' prefix.
+  // to translate CNXML elements that aren't compatible with HTML5
+  const xml = xClone(sourceClone, createElement('x-content')).outerHTML
+    // Remove 'x-' prefix at the end.
     .replace(/<x-|<\/x-/g, (x) => ~x.indexOf('<\/') ? '</' : '<')
     // Close <img> tags.
     .replace(/<img(.*?)>/g, (a, attrs) => `<image${attrs}/>`)
-    // Restroe reference links.
-    .replace(/<ref(.*?)>(.*?)<\/ref>/g, restoreReferences)
-    // Replace <wrapp> tag with <quote> tah which can be stored in Legacy.
-    // TODO: Mere it with the one below!
-    .replace(/<wrapp|<\/wrapp>/g, (match) => ~match.indexOf('/') ? '</quote>' : '<quote')
-    // Remove empty <quote> wrappers areound content. This may apear when inline tags like e.g. <term> are
-    // used like block elements fore exampe in <definition>.
-    .replace(/<quote>([\s\S\w]+?)<\/quote>/g, (a, match) => match)
-    // Remove all contenteditable nad nbsp.
-    .replace(/(\s*class=".+?"\s*)|(\s*contenteditable=".+?"\s*)|(&nbsp;)/g, '')
-    // Restore newline.
-    .replace(/<br>/g, '<newline/>');
+
+  // Instantiate XML barser & serializer.
+  const parser = new DOMParser();
+  const serializer = new XMLSerializer();
+  const cnxml = parser.parseFromString(xml, "application/xml");
+
+  // Transform back some of the xml tags to be compatible with CNXML standard.
+  Array.from(cnxml.querySelectorAll('reference')).forEach(transformRefs);
+  Array.from(cnxml.querySelectorAll('term')).forEach(transformTerms);
+
+  // Return final CNXML.
+  return serializer.serializeToString(cnxml)
+    // Remove unecesery xml namesapces form CNXML elements & &nbsp; -> Leftovers from parsing & editing.
+    .replace(/\s*xmlns="[\s\S\w]+?xhtml"/g, '')
+    // Remove conetnt from <newline>NL</newline> tag.
+    .replace(/<newline>NL<\/newline>/g, '<newline/>');
 };

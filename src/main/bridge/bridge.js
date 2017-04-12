@@ -18,8 +18,8 @@ import MergeEditor from "../editors/merge";
 
 // Utilities.
 import diff from "../diff";
+import {toHTML, toCNXML} from "../parser";
 import PubSub from "../../utilities/pubsub";
-import {toHTML, toCNXML, findWidows} from "../parser";
 import {template, createElement} from "../../utilities/travrs";
 import {mergeSameSiblings, rejectAllChanges} from "../diff/merge";
 import {uid, date, getNodesOut, Memo} from "../../utilities/tools";
@@ -137,8 +137,8 @@ export default function Bridge (root) {
   // Append new content.
   const appendContent = (content) => {
     // Create content editable structure.
-    Content.element.innerHTML = toHTML(content);
-    findWidows(Content.element);
+    Content.element.innerHTML = toHTML(content).firstElementChild.innerHTML;
+    // findWidows(Content.element);
     // Re-render Math.
     tools.proxy.dataset.reRender = true;
   };
@@ -158,7 +158,7 @@ export default function Bridge (root) {
   const compare = (oldCNXML) => {
     const diffA = createElement('div', toHTML(oldCNXML));
     const diffB = createElement('div', Content.element.innerHTML);
-    findWidows(diffA);
+    // findWidows(diffA);
 
     Content.element.innerHTML = '';
     Array.from(diff(diffA, diffB).children).forEach(element => {

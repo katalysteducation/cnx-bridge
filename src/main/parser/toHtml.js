@@ -1,93 +1,147 @@
-import inlineRules from "./inliners";
+import {copyAttrs, uid} from "../../utilities/tools";
+import {createElement} from "../../utilities/travrs";
 
+// ---- Helpers ----------------
 
-// ---- TO HTML HELPERS ----------------
+const isInline = (node) => inliners.some(selector => node.matches && node.matches(selector));
+const isTextNode = (node) => node.nodeName === '#text' && node.data.trim().length > 0;
+const isOnlyChild = (node) => node.parentNode.children.length === 1;
+// Detect <terms> displayes as block elements
+const isBlockTerm = (term) =>
+  !term.previousSibling && term.nextSibling && term.nextSibling.tagName ||
+  !term.nextSibling && term.previousSibling && term.previousSibling.tagName ||
+  term.previousSibling.tagName === 'term' && term.nextSibling.tagName === 'term';
 
-// Rules container for the individual tag parsing logic.
-const inliner = inlineRules();
-
-// ---- Replacers ----------------
-
-// Convert matched text into editable paragraph.
-const extractEditables = (a, match) =>
-  match.length > 0 ? `><p data-target="editable" contenteditable="true">${match}</p><` : '><';
-
-// Restore inline elements from 'inlineStore'.
-const restoreInlines = (storage) => (a, match) => storage[match];
-
-// Handle self-closing tags -> make them
-const selfClosingTags = (match) => {
-  // If tah is self-closed.
-  if (match[match.length - 2] === '/') {
-    // Get tag name.
-    const tag = match.slice(1, match.length - 2).split(' ')[0];
-    // If <link/> (special case)
-    if (tag === 'link') return `${match.slice(0, match.length - 2)}>Reference</${tag}>`;
-    // Else if <label/> (special case)
-    else if (tag === 'label') return '';
-    // TODO: Investigate whether this is still necessary or not?
-    // else if (tag === 'newline') return '<br>';
-    // Standard cases.
-    else return `${match.slice(0, match.length - 2)}></${tag}>`;
+const cloneElement = (node) => {
+  if (!node) return;
+  else if (node.tagName) {
+    const clone = createElement('div');
+    clone.dataset.type = node.tagName;
+    copyAttrs(node, clone);
+    return clone;
   }
-  return match;
 };
 
-// Convert CNXML tags into DIVs with CNXML tag name assigned to 'data-type' attribute.
-// This replacer will also preserve all CNXML attributes.
-// It also skip tags passed as '...skip' arguments.
-const cnxmlToDiv = (...skip) => {
-  // Do not change those tags into: div[data-type].
-  const inlineTags = skip.concat(skip.map(tag => '/' + tag));
-  return (match) => {
-    const tag = match.slice(1, match.indexOf(' '));
-    // Skip inline tags.
-    if (~inlineTags.indexOf(tag)) return match;
-    // Replace match with <DIV>s.
-    return ~match.indexOf('<\/') ? '</div>' : `<div data-type="${tag}"${match.slice(match.indexOf(' '), match.length)}`;
-  };
+const newEditable = (content) => {
+  const editable = createElement('p');
+  editable.setAttribute('contenteditable', true);
+  return editable;
 };
 
-// Convert CNXML to DIVs, and skip: 'br', 'ref', 'ref/' tags.
-const convertToDivs = cnxmlToDiv('br', 'ref', 'ref/');
-
-// Find cnxml tags according to the keys in 'rules' object and call proper parsing fn. when match is foud.
-const extractInline = (cnxml, rules) => {
-  // Match tag paris without self-closing tag.
-  const phrese = Object.keys(rules).reduce((result, key) => result += `<${key}[^>]*>(.*?)</${key}>|`, '');
-  const regex = new RegExp(phrese.slice(0,-1),"gm");
-  return cnxml.replace(regex, (matched, content) => {
-    const tag = matched.slice(matched.lastIndexOf('/') + 1, matched.length - 1);
-    return rules[tag](matched, content);
-  });
+const wrapp = (editable) => {
+  const div = createElement('div');
+  div.id = uid();
+  div.dataset.type = 'quote';
+  div.setAttribute('type', 'wrapp');
+  div.setAttribute('display', 'inline');
+  div.appendChild(editable);
+  return div;
 };
 
+// ---- TOHTML Core ----------------
+
+// Define inline node selectors.
+const inliners = ['math', 'quote[type=comment]', 'img', 'newline', 'emphasis', 'term[inline=true]', 'sub', 'sup', 'footnote', 'reference'];
+
+// Convert XML tree into HTML Editable tree.
+const convert = (node, parent, modifier) => {
+  node = node.firstChild;
+  let editable = newEditable();
+
+  // Iterate through all child nodes.
+  while(node) {
+
+    // Modifi node if required.
+    let current = modifier(node);
+
+    // Allow to skip nodes if current === undefined.
+    if (current) {
+      // Clone text & inline elements.
+      if (isInline(current) || isTextNode(current)) {
+        editable.appendChild(current.cloneNode(true));
+      }
+      // For block elements.
+      else {
+        // If editable has children append it to the parent a go further.
+        if (editable.hasChildNodes()) {
+          parent.appendChild(wrapp(editable));
+          editable = newEditable();
+        }
+        // Clone deep element.
+        const clone = cloneElement(current);
+        parent.appendChild(clone);
+        // Go deeper.
+        convert(current, clone, modifier);
+      }
+      // Go to next sibling node.
+      node = current.nextSibling;
+    }
+    // When node was skipped.
+    else node = node.nextSibling;
+  }
+
+  // Append editables.
+  if (editable.hasChildNodes()) {
+    // Wrap if editable is not only element.
+    parent.appendChild(!parent.hasChildNodes() ? editable : wrapp(editable));
+    // Ensude parent have ID. !!Except <tbody> & <tgroup> ID in this el. braks Legacy Edit-In-Place display.
+    if (!parent.id && parent.dataset.type !== 'tbody' && parent.dataset.type !== 'tgroup') parent.id = uid();
+  }
+
+  // Return result node.
+  return parent;
+};
+
+// ---- Modifiers ------------------
+
+// Custom parsing methods for the differend types of elements.
+// NOTE: If modifier returns 'null' OR 'undefined' then the node is removed/skipped.
+const modifiers = (node) => {
+
+  // Chenge <link>s into <reference> elements.
+  if (node.tagName === 'link') {
+    const reference = createElement('reference', node.innerHTML.length > 0 ? node.innerHTML : node.getAttribute('target-id'));
+    copyAttrs(node, reference);
+    node.parentNode.replaceChild(reference, node);
+    return reference;
+  }
+
+  // Chenge <image>s into <img> elements.
+  if (node.tagName === 'image') {
+    const img = createElement('img');
+    copyAttrs(node, img);
+    node.parentNode.replaceChild(img, node);
+    return img;
+  }
+
+  // Remove empty labels.
+  if (node.tagName === 'label' && node.textContent.length === 0) return;
+
+  // Default return (do not modify element).
+  return node;
+};
 
 // --------------------------------------------
-// ---- TO HTML EXPORT ----------------
+// ---- TO HTML ----------------
 // ------------------------
 
-// Convert CNXML to HTML Editable tree.
-export default function toHTML (template) {
-  const result = template
-    // Replace self-closing tags. !! Except <newline/>
-    .replace(/<(.|\n)*?>/g, selfClosingTags)
-    // Replace quote-wrappers with <wrapp> element -> this allow to avoid parser's confusion with quote-comments.
-    .replace(/<quote type="wrapp"[\S\s\w]+?>[\S\s\w]+?<\/quote>/g, (value) =>  value.replace(/quote/g, 'wrapp'))
-    // Replace MATHML open-tag / close-tag marker.
-    .replace(/(<m:)|(<\/m:)/g, (match) => ~match.indexOf('/') ? '</' : '<')
-    // Remove newlines.
-    .replace(/\n/g, '')
+export default function toHtml (cnxml) {
 
-  return extractInline(result, inliner.rules)
-    // Convert cnxml to html equivalent.
-    .replace(/<((.|\n)*?)>/g, convertToDivs)
-    // Remove multiple spaces -> prepaer maarkup before extracting editable content.
-    .replace(/\s{2,}/g, '')
-    // Extract editable content.
-    .replace(/>([\S\s\w]*?)</g, extractEditables)
-    // Restore inline markup.
-    .replace(/#%([\w\S\s\.]+?)%#/gm, restoreInlines(inliner.store))
-    // Convert <newline> to <br>
-    .replace(/<newline><\/newline>/g, '<br>');
+  cnxml = cnxml
+    // Remove retuns chatacters and multiple spaces.
+    .replace(/(\n)|(\s{2,})/g,'')
+    // Remove MathML namespace.
+    .replace(/(<m:)|(<\/m:)/g, (match) => ~match.indexOf('/') ? '</' : '<');
+
+  // Instantiate XML parser.
+  const parser = new DOMParser();
+  const xml = parser.parseFromString(cnxml, "application/xml");
+
+  // Detect inline terms. In some cases e.g. <deffinition> , <seeaslo>, etc. <terms>
+  // are used more like a block element and they are paet of the element internal strucctre.
+  // Those cases need to be distinguish from regular inline application.
+  Array.from(xml.querySelectorAll('term')).forEach(term => !isBlockTerm(term) && term.setAttribute('inline', true));
+
+  // Convret XML to DOM & return HTML Editable Tree Structure.
+  return convert(xml, createElement('div'), modifiers);;
 };
