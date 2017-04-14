@@ -1,9 +1,9 @@
 // Finds only one selected element. It coul be eaither
 // #text node or first HTMLElement.
-const findSelectedElement = (buffer) => (rengeContent) => {
+const findSelectedElement = (buffer) => (rangeContent) => {
   let found;
   buffer.innerHTML = '';
-  buffer.appendChild(rengeContent);
+  buffer.appendChild(rangeContent);
   const selsected = Array.from(buffer.childNodes);
 
   if (selsected.length === 1)
@@ -96,8 +96,12 @@ export default function Select (root, editors) {
     // Get selection.
     const selection = window.getSelection();
     const range = selection.anchorNode ? selection.getRangeAt(0) : new Range();
+    const selectionText = range.toString();
 
-    // Bail if no selection.
+    // If selection contain end-sapce (double-click on word in Widnows) remove it from selection.
+    if (~selectionText.slice(-1).search(/\s/)) range.setEnd(range.endContainer, range.endOffset - 1);
+
+    // If selection is on node with 'data-select' attribute. Select whole node.
     if (event.target.dataset.select) range.selectNode(event.target);
 
     // Get rectangle around selection.

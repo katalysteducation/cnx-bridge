@@ -84,7 +84,7 @@ const saveInLegacy = (content, root) => new Promise((resolve, reject) => {
   // Fail if no UI to hook up.
   if (!textarea || !button) reject('Storage :: There is no Legacy UI to hook up -- no textarea OR save button');
   // Populate textarea with new CNXML.
-  textarea.value = textarea.value.replace(/<content>([\S\s\w]+)<\/content>/, `<content>${content}</content>` )
+  textarea.value = textarea.value.replace(/<content>([\S\s\w]+)<\/content>/, content)
   // .replace(/<metadata>([\S\s\w]+)<\/metadata>/, metadata.outerHTML );
   // Start saving process in Legacy.
   button.click();
@@ -141,8 +141,8 @@ export default (function Storage() {
   // Get Legacy data from the #textarea.
   const legacy = readCurrentCnxml(document);
 
-  // Get all revisions without the latest -> the histroy data.
-  const history = currentModule.then(module => module.revisions.slice(1, module.revisions.length));
+  // Get all previous revisions.
+  const history = currentModule.then(module => module.revisions);
 
   // Get the latest revision for current module.
   const latest = currentModule.then(module => module.revisions.slice(0,1)[0]);

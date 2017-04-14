@@ -24,17 +24,20 @@ const cloneElement = (node) => {
 
 const newEditable = (content) => {
   const editable = createElement('p');
+  editable.dataset.target = 'editable';
   editable.setAttribute('contenteditable', true);
   return editable;
 };
 
 const wrapp = (editable) => {
   const div = createElement('div');
-  div.id = uid();
+  const id = uid();
+  div.id = id;
   div.dataset.type = 'quote';
   div.setAttribute('type', 'wrapp');
   div.setAttribute('display', 'inline');
   div.appendChild(editable);
+  editable.dataset.pid = id;
   return div;
 };
 
@@ -82,10 +85,15 @@ const convert = (node, parent, modifier) => {
 
   // Append editables.
   if (editable.hasChildNodes()) {
-    // Wrap if editable is not only element.
-    parent.appendChild(!parent.hasChildNodes() ? editable : wrapp(editable));
     // Ensude parent have ID. !!Except <tbody> & <tgroup> ID in this el. braks Legacy Edit-In-Place display.
     if (!parent.id && parent.dataset.type !== 'tbody' && parent.dataset.type !== 'tgroup') parent.id = uid();
+    // Append new editable.
+    if (!parent.hasChildNodes()) {
+      editable.dataset.pid = parent.id;
+      parent.appendChild(editable);
+    }
+    // Wrap editable in wrapper-quote if it is not only element.
+    else parent.appendChild(wrapp(editable));
   }
 
   // Return result node.
@@ -131,17 +139,17 @@ export default function toHtml (cnxml) {
     // Remove retuns chatacters and multiple spaces.
     .replace(/(\n)|(\s{2,})/g,'')
     // Remove MathML namespace.
-    .replace(/(<m:)|(<\/m:)/g, (match) => ~match.indexOf('/') ? '</' : '<');
+    .replace(/<(\/?)m:|\s*xmlns(:m)?\s*="[\s\S\w]+?"/g, (match, slash) => ~match.indexOf('<') ? ('<' + slash) : '');
 
   // Instantiate XML parser.
   const parser = new DOMParser();
   const xml = parser.parseFromString(cnxml, "application/xml");
 
-  // Detect inline terms. In some cases e.g. <deffinition> , <seeaslo>, etc. <terms>
-  // are used more like a block element and they are paet of the element internal strucctre.
-  // Those cases need to be distinguish from regular inline application.
+  // Detect inline <term>s. In some cases e.g. <deffinition> , <seeaslo>, etc. <terms>
+  // are used more like a block element and they are part of an internal strucctre.
+  // Those cases need to be distinguish from regular inline applications.
   Array.from(xml.querySelectorAll('term')).forEach(term => !isBlockTerm(term) && term.setAttribute('inline', true));
 
   // Convret XML to DOM & return HTML Editable Tree Structure.
-  return convert(xml, createElement('div'), modifiers);;
+  return convert(xml, createElement('div'), modifiers);
 };

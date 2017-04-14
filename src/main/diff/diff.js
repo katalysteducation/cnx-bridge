@@ -96,6 +96,8 @@ export default function diffNodes (oldSectionA, sectionB) {
     // Get element ids diff -> less computing than parsing tree.
     const { same, added, removed } = arrayCompare(Object.keys(editablesA), Object.keys(editablesB));
 
+    // console.log(same, added, removed ); // Debug.
+
     // Create output tree.
     const output = sectionB.cloneNode(true);
     const outputIds = domToMap(Array.from(output.querySelectorAll('p[data-target=editable]')));

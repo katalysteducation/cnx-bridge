@@ -17,15 +17,21 @@ export default function MergeEditor (pubsub) {
   // Reference to selected Math element.
   let _target;
 
+  // Get comments ids if exist in current diff.
+  const getCommentIds = (target) =>
+    Array.from(target.querySelectorAll('quote[type=comment]')).map(comment =>  comment.id);
+
   // Detect user action.
   const detectAction = (event) => {
     const {action} = event.target.dataset;
     // Fail if no data.
     if (!action || !_target) return;
+    // Detect comments in diffs.
+    const commentsIds = getCommentIds(_target);
     // Run selected action.
     action === 'accept' ? accepChange(_target) : rejectChange(_target);
     // Dismiss popup.
-    pubsub.publish('editor.dismiss');
+    pubsub.publish('editor.dismiss').publish('editor.unwrap', { ids:commentsIds });
   };
 
   // Main UI element.

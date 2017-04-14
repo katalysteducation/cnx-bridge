@@ -25,10 +25,9 @@ export default (function Comments () {
   });
 
   const append = (comment) => {
-    if (empty.parentNode) {
-      element.removeChild(empty);
-    }
+    if (empty.parentNode) element.removeChild(empty);
     element.appendChild(comment);
+    return comment;
   };
 
   // Detect user's action.
@@ -68,7 +67,7 @@ export default (function Comments () {
         note: input.value
       };
       input.value = '';
-      commentsList.get(response).responses.push(data);
+      commentsList.get(response).model.responses.push(data);
       element.querySelector(`div[data-comment-id="${response}"] div.cnxb-comment-responses`).appendChild(responseEl(data));
     }
     // Clear input.
@@ -90,20 +89,19 @@ export default (function Comments () {
 
   // Add new comment.
   const add = (id, content) => {
-     const data = {
-        id,
-        ...userData,
-        note: content,
-        responses: [],
-        date: date(true),
-      };
+    const model = {
+      id,
+      ...userData,
+      responses: [],
+      note: content,
+      date: date(true)
+    };
     if (commentsList.has(id)) throw "Duplicated comment ID";
-    commentsList.set(id, data);
-    append(commentEl(data));
+    commentsList.set(id, { model, ref: append(commentEl(model)) });
   };
 
   // Get all comments.
-  const pull = () => Array.from(commentsList.values());
+  const pull = () => Array.from(commentsList.values()).map(comment => comment.model);
 
   // Select Coment by its id, and set it active.
   const select = (id) =>
@@ -112,17 +110,19 @@ export default (function Comments () {
   // Add comment from list to the display.
   const fill = (list = []) => {
     const final = list.reduce((result, comment) => {
-      result.set(comment.id, comment);
-      console.log(comment);
-      append(commentEl(comment));
+      if (!commentsList.has(comment.id)) result.set(comment.id, { model: comment, ref: append(commentEl(comment)) });
       return result;
     }, commentsList);
     return final;
   }
 
-  // Remove comments not presents on the 'list'.
-  const filter = (list) => {
-
+  // Remove comments presents on the 'list'.
+  const remove = (list) => {
+    list.forEach(id => {
+      const comment = commentsList.get(id).ref;
+      comment.parentNode.removeChild(comment);
+      commentsList.delete(id);
+    });
   };
 
   // Replace existing comments with new list.
@@ -133,5 +133,5 @@ export default (function Comments () {
   };
 
   // Pubic API.
-  return { element, user, add, pull, fill, filter, replace, select };
+  return { element, user, add, pull, fill, remove, replace, select };
 }());

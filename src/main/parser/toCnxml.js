@@ -11,8 +11,8 @@ const cleanMath = (source) => {
       document.createRange().createContextualFragment(
         element.querySelector('script')
           .textContent
-          // Add MathML namespace. It is just to be consistent with decalrations in Module-cnxml where they are set up anyway.
-          .replace(/(\<m)|(\<\/m)/g, (match) => ~match.indexOf('/') ? '</m:m' : '<m:m')
+          // Add MathML namespace.
+          .replace(/<math/g, (match) => '<math xmlns="http://www.w3.org/1998/Math/MathML"')
       ),
       element
     );
@@ -70,6 +70,12 @@ const transformTerms = (node) => {
   node.parentNode.replaceChild(term, node);
 };
 
+// Remove unnecesery attributes from <quote type="commnet">
+const transformComments = (node) => {
+  node.removeAttribute('contenteditable');
+  node.removeAttribute('class');
+};
+
 
 // --------------------------------------------
 // ---- TO CNXML ----------------
@@ -95,6 +101,7 @@ export default function toCnxml (htmlNode) {
   const cnxml = parser.parseFromString(xml, "application/xml");
 
   // Transform back some of the xml tags to be compatible with CNXML standard.
+  Array.from(cnxml.querySelectorAll('quote[type=comment]')).forEach(transformComments);
   Array.from(cnxml.querySelectorAll('reference')).forEach(transformRefs);
   Array.from(cnxml.querySelectorAll('term')).forEach(transformTerms);
 

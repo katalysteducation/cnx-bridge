@@ -5,6 +5,7 @@ import Storage from "./storage";
 // UI Compoenents.
 import Panels from "../ui/panels";
 import History from "../ui/history";
+import Content from "../ui/content";
 import Toolbar from "../ui/toolbar";
 import Toolbox from "../ui/toolbox";
 import Comments from "../ui/comments";
@@ -41,11 +42,6 @@ const scaffold = `
     @proxy
 `;
 
-
-// FIXME: Implement this as component.
-const Content = {
-  element : createElement('div.content', "Content here")
-}
 
 // FIXME: Implement this as component.
 const Messenger = {
@@ -97,7 +93,7 @@ export default function Bridge (root) {
 
   // Set select tool. Set root to 'Content.element.parentNode'
   // to not interfere with reorder functionality.
-  const select = new Select(Content.element.parentNode, BridgeState.editors);
+  const select = new Select(contentPanels.view, BridgeState.editors);
 
 
   // ---- MAIN UI COMPONENT ------------
@@ -137,8 +133,8 @@ export default function Bridge (root) {
   // Append new content.
   const appendContent = (content) => {
     // Create content editable structure.
+    // FIXME: Shalow nesting!
     Content.element.innerHTML = toHTML(content).firstElementChild.innerHTML;
-    // findWidows(Content.element);
     // Re-render Math.
     tools.proxy.dataset.reRender = true;
   };
@@ -156,9 +152,8 @@ export default function Bridge (root) {
 
   // Compare oldCNXML DOM sttucture with current one.
   const compare = (oldCNXML) => {
-    const diffA = createElement('div', toHTML(oldCNXML));
+    const diffA = toHTML(oldCNXML).querySelector('div[data-type=content]');
     const diffB = createElement('div', Content.element.innerHTML);
-    // findWidows(diffA);
 
     Content.element.innerHTML = '';
     Array.from(diff(diffA, diffB).children).forEach(element => {
@@ -222,6 +217,8 @@ export default function Bridge (root) {
     if (!revision || Content.element.querySelector('del, ins')) return;
     // Compare revision with current content.
     compare(revision.content);
+    // Append comment from diff version
+    Comments.fill(revision.comments);
   };
 
   // Display selected revision.
@@ -244,7 +241,12 @@ export default function Bridge (root) {
     ref.setAttribute('contenteditable', false);
 
     Comments.add(id, content);
-  }
+  };
+
+  // Checkd if comments were removed from the Content, and if its true remove them from the Comments panel.
+  const checkComments = ({ids}) => {
+    if (ids.length > 0) Comments.remove(ids.filter(id => !document.getElementById(id)));
+  };
 
   // ---- FIRST RUN ------------------------
 
@@ -266,7 +268,7 @@ export default function Bridge (root) {
     // Content listeners.
     Content.element.addEventListener('click', detectElement);
     Content.element.addEventListener('mouseup', selectEditable);
-
+    
     // Toolbox listeners.
     Toolbox.element.addEventListener('switch-tab', switchOutlinerPanels);
 
@@ -290,6 +292,7 @@ export default function Bridge (root) {
     pscroll.initialize(outlinerPanels.view, { suppressScrollX: true });
 
     // PubSub listeners.
+    pubsub.subscribe('editor.unwrap', checkComments);
     pubsub.subscribe('editor.comment', addNewComment);
     pubsub.subscribe('editor.dismiss', select.dismiss);
 

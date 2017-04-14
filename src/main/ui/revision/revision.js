@@ -40,12 +40,14 @@ export default (function Revision () {
     // Set empty placeholder if no data.
     if (!revision) {
       element.appendChild(createElement('div.cnxb-empty', 'No revisions for this module'));
-      return;
+      return; // This woll stop 'initialCompare'.
     }
     // Set latest revision.
     latest[revision.date] = revision;
     // Append UI.
     element.appendChild(template(scaffold(revision)));
+    // Return latest revision for 'initialCompare'.
+    return revision;
   };
 
   // Public API.
