@@ -268,7 +268,7 @@ export default function Bridge (root) {
     // Content listeners.
     Content.element.addEventListener('click', detectElement);
     Content.element.addEventListener('mouseup', selectEditable);
-    
+
     // Toolbox listeners.
     Toolbox.element.addEventListener('switch-tab', switchOutlinerPanels);
 
@@ -351,6 +351,7 @@ export default function Bridge (root) {
   ])
   .then(initialCompare)
   .catch(console.warn);
+
 
   // Add history antries.
   Storage.history.then(History.fill);

@@ -12,7 +12,7 @@ export default (function Content () {
 
   // Replace old content with new one.
   const append = (content) => {
-    content.classList.add('content');    
+    content.classList.add('content');
     element.parentNode.replaceChild(content, element);
   };
 

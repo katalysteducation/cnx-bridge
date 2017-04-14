@@ -1,12 +1,21 @@
 
 // Get <content> tag from CNXML.
-export const getContent = (cnxml) =>
-  cnxml.slice(cnxml.indexOf('<content>'), cnxml.indexOf('<\/content>') + 10);
+export const getContent = (cnxml) => cnxml
+  // Ectract content markup.
+  .slice(cnxml.indexOf('<content>'), cnxml.indexOf('<\/content>') + 10)
+  // Remove <?cnx.?> tags.
+  .replace(/<\?cnx([\s\S\w]+?)\?>/g, '');
 
 // Get <metadata> tag from CNXML.
 export const getMetadata = (cnxml) =>
   cnxml.slice(cnxml.indexOf('<metadata'), cnxml.indexOf('<\/metadata>') + 11);
 
+// Get <?cnx.?> tag from CNXML content.
+export const getClasses = (cnxml) => {
+  const result = [];
+  cnxml.replace(/<\?cnx[\s\S\w]+?\?>/g, (match) => result.push(match));
+  return result.join('');
+};
 
 // Wrap 'elements' with HTMLElement of given 'type' with provided 'attrs'.
 // EXAMPLE: wrapElement(node, 'del', { "data-skip-merge" : true });

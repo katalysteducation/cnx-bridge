@@ -1,5 +1,5 @@
 import client from "../../utilities/client";
-import {getContent, getMetadata, date} from "../../utilities/tools";
+import {getContent, getMetadata, getClasses, date} from "../../utilities/tools";
 
 // Get module id from URL.
 const getModuleId = () => {
@@ -70,10 +70,11 @@ const retry = (response) =>
 // Load current CNXML version from Legacy #textarea.
 const readCurrentCnxml = (root) => () => {
   const textarea = root.querySelector('#textarea');
-  return {
-    content: getContent(textarea ? textarea.value : ''),
-    metadata: getMetadata(textarea ? textarea.value : '')
-  }
+  const metadata = getMetadata(textarea ? textarea.value : '');
+  const content = getContent(textarea ? textarea.value : '');
+  const classes = getClasses(textarea ? textarea.value : '');
+
+  return { classes, content, metadata }
 };
 
 
@@ -178,9 +179,9 @@ export default (function Storage() {
   return {
     // Getters.
     config,   // prop -> Promise: { user, avatar, token, pin, backend, status }
-    legacy,   // func -> Promise: { content, metadata }
+    legacy,   // func -> Object:  { content, metadata, classes }
     latest,   // prop -> Promise: { module.revisions.last }
-    history,  // prop -> Promise: { module.revisions - 1 }
+    history,  // prop -> Promise: { module.revisions }
     restore,  // func -> Object:  { module }
 
     // Setters.
