@@ -324,7 +324,7 @@ export default function Bridge (root) {
     // Save data.
     Storage
       .saveRevision(cnxmlContent, Comments.pull())
-      .then(success => Storage.saveCnxml(cnxmlContent));
+      .then(success => Storage.saveCnxml(cnxmlContent, Storage.legacy().classes));
   };
 
   // Reload data in Bridge's workspace.

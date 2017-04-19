@@ -79,13 +79,13 @@ const readCurrentCnxml = (root) => () => {
 
 
 // Convert markup & save data in legacy.
-const saveInLegacy = (content, root) => new Promise((resolve, reject) => {
+const saveInLegacy = (content, classes, root) => new Promise((resolve, reject) => {
   const textarea = root.querySelector('#textarea');
   const button = root.querySelector('#edit_form > input[type=submit]');
   // Fail if no UI to hook up.
   if (!textarea || !button) reject('Storage :: There is no Legacy UI to hook up -- no textarea OR save button');
   // Populate textarea with new CNXML.
-  textarea.value = textarea.value.replace(/<content>([\S\s\w]+)<\/content>/, content)
+  textarea.value = textarea.value.replace(/<content>([\S\s\w]+)<\/content>/, content.replace('<content>', '<content>' + classes))
   // .replace(/<metadata>([\S\s\w]+)<\/metadata>/, metadata.outerHTML );
   // Start saving process in Legacy.
   button.click();
@@ -169,7 +169,7 @@ export default (function Storage() {
   }
 
   // Save data in Legacy System.
-  const saveCnxml = (cnxml) => saveInLegacy(cnxml, document).catch(console.error);
+  const saveCnxml = (cnxml, classes) => saveInLegacy(cnxml, classes, document).catch(console.error);
 
   // Clear all revisions in module with given 'id'.
   const clearModule = (id) => client.get.clear(id);

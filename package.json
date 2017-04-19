@@ -1,6 +1,6 @@
 {
   "name": "cnx-bridge",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "UI Enhancement Layer for CNX Legacy Editor",
   "main": "build/manifest.json",
   "scripts": {
