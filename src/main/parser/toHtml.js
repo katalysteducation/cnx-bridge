@@ -1,5 +1,6 @@
-import {copyAttrs, uid} from "../../utilities/tools";
+import modifiers from "./modifiers";
 import {createElement} from "../../utilities/travrs";
+import {copyAttrs, uid} from "../../utilities/tools";
 
 // ---- Helpers ----------------
 
@@ -12,32 +13,26 @@ const isBlockTerm = (term) =>
   !term.nextSibling && term.previousSibling && term.previousSibling.tagName ||
   term.previousSibling.tagName === 'term' && term.nextSibling.tagName === 'term';
 
-const cloneElement = (node) => {
+// Make <DIV> clone of passed XML node. If deep === true make a deep copy.
+const cloneElement = (node, deep = false) => {
   if (!node) return;
   else if (node.tagName) {
-    const clone = createElement('div');
-    clone.dataset.type = node.tagName;
+    const clone = createElement(`div[data-type="${node.tagName}"]`);
     copyAttrs(node, clone);
+    if (deep) clone.innerHTML = node.innerHTML;
     return clone;
   }
 };
 
-const newEditable = (content) => {
-  const editable = createElement('p');
-  editable.dataset.target = 'editable';
-  editable.setAttribute('contenteditable', true);
-  return editable;
-};
+// Create new Editable container.
+const newEditable = (content) => createElement('p[data-target="editable" contenteditable="true"]');
 
+// Wrap Editable container with quote-wrapper.
 const wrapp = (editable) => {
-  const div = createElement('div');
   const id = uid();
-  div.id = id;
-  div.dataset.type = 'quote';
-  div.setAttribute('type', 'wrapp');
-  div.setAttribute('display', 'inline');
-  div.appendChild(editable);
+  const div = createElement(`div[id="${id}" data-type="quote" type="wrapp" display="inline"]`);
   editable.dataset.pid = id;
+  div.appendChild(editable);
   return div;
 };
 
@@ -58,7 +53,7 @@ const convert = (node, parent, modifier) => {
     let current = modifier(node);
 
     // Allow to skip nodes if current === undefined.
-    if (current) {
+    if (current && !current.skipNode) {
       // Clone text & inline elements.
       if (isInline(current) || isTextNode(current)) {
         editable.appendChild(current.cloneNode(true));
@@ -76,6 +71,13 @@ const convert = (node, parent, modifier) => {
         // Go deeper.
         convert(current, clone, modifier);
       }
+      // Go to next sibling node.
+      node = current.nextSibling;
+    }
+    else if (current.skipNode) {
+      // Make deep clone of the current node.
+      const clone = cloneElement(current, true);
+      parent.appendChild(clone);
       // Go to next sibling node.
       node = current.nextSibling;
     }
@@ -100,34 +102,6 @@ const convert = (node, parent, modifier) => {
   return parent;
 };
 
-// ---- Modifiers ------------------
-
-// Custom parsing methods for the differend types of elements.
-// NOTE: If modifier returns 'null' OR 'undefined' then the node is removed/skipped.
-const modifiers = (node) => {
-
-  // Chenge <link>s into <reference> elements.
-  if (node.tagName === 'link') {
-    const reference = createElement('reference', node.innerHTML.length > 0 ? node.innerHTML : node.getAttribute('target-id'));
-    copyAttrs(node, reference);
-    node.parentNode.replaceChild(reference, node);
-    return reference;
-  }
-
-  // Chenge <image>s into <img> elements.
-  if (node.tagName === 'image') {
-    const img = createElement('img');
-    copyAttrs(node, img);
-    node.parentNode.replaceChild(img, node);
-    return img;
-  }
-
-  // Remove empty labels.
-  if (node.tagName === 'label' && node.textContent.length === 0) return;
-
-  // Default return (do not modify element).
-  return node;
-};
 
 // --------------------------------------------
 // ---- TO HTML ----------------

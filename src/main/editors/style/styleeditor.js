@@ -1,5 +1,5 @@
 import style from "./apply";
-import { elFromString, kedID } from "../../../utilities/tools";
+import { elFromString, uid } from "../../../utilities/tools";
 import { template, createElement } from "../../../utilities/travrs";
 
 require('./styleeditor.scss');
@@ -91,7 +91,7 @@ export default function StyleEditor (pubsub) {
     term: style('term', types, pubsub),
     bold: style('emphasis[effect="bold"]', types, pubsub),
     italic: style('emphasis[effect="italic"]', types, pubsub),
-    commentStyle: style('quote', types, pubsub),
+    commentStyle: style(`quote[type="comment" display="inline" contenteditable="false"]`, types, pubsub),
 
     comment (state) {
       activateStylePanel(refs.comment.classList.contains('active'));

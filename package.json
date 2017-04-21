@@ -1,7 +1,7 @@
 {
   "name": "cnx-bridge",
-  "version": "0.4.4",
-  "description": "UI Enhancement Layer for CNX Legacy Editor",
+  "version": "0.4.5",
+  "description": "UI Enhancement Layer for CNX Legacy Editor with revision control",
   "main": "build/manifest.json",
   "scripts": {
     "watch": "webpack --watch",

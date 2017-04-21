@@ -142,7 +142,7 @@ export default function Bridge (root) {
 
   // FIXME: This is an old implememntation. Need update + add blocking edition when diffing.
   const selectEditable = (event) => {
-    const editable = event.target.closest('p[contenteditable=true]');
+    const editable = event.target.closest('p[data-target=editable]');
     const allow = ['DEL', 'INS', 'COMMENT'];
     // Allow selecting only ediitable containers. Except with MergeEditor.
     if ((editable) || ~allow.indexOf(event.target.tagName)) select.contentSelected(event);
@@ -236,10 +236,6 @@ export default function Bridge (root) {
   const addNewComment = ({ref, content}) => {
     const id = uid();
     ref.id = id;
-    ref.setAttribute('type', 'comment');
-    ref.setAttribute('display', 'inline');
-    ref.setAttribute('contenteditable', false);
-
     Comments.add(id, content);
   };
 

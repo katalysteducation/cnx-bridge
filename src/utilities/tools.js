@@ -252,6 +252,7 @@ export const revisionToObject = (revision) => {
 // Move nodes 'from' node 'to' node.
 export const moveNodes = (from, to) => {
   while(from.childNodes.length > 0) to.appendChild(from.firstChild);
+  return to;
 };
 
 // Modifier function with memory.

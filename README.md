@@ -1,5 +1,5 @@
 # CNX Bridge #
-> UI Enhancement Layer for CNX Legacy Editor
+> UI Enhancement Layer for CNX Legacy Editor with revision control 
 
 
 ## Instalation ##
