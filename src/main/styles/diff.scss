@@ -1,3 +1,6 @@
+
+// ---- INSERT ELEMENTS ----------------
+
 ins {
   position: relative;
   display: inline-block;
@@ -18,16 +21,14 @@ ins {
     position: absolute;
   }
 
-  &.active {
-    border: 1px solid #0faae3;
-  }
-
   & > img {
     border: 4px solid #8de45e;
   }
 
   background: #8de45e;
 }
+
+// ---- DELETE ELEMENTS ----------------
 
 del {
   position: relative;
@@ -47,10 +48,6 @@ del {
   	height: 100%;
   	display: block;
   	position: absolute;
-  }
-
-  &.active {
-    border: 1px solid #0faae3;
   }
 
   & > img {

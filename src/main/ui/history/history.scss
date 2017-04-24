@@ -3,6 +3,17 @@ $separator: #e7e7ea;
 $main: #3174f1;
 
 .cnxb-history {
+  padding: 0;
+  
+  & > h4 {
+    color: #797979;
+    margin: 0px;
+    font-size: 18px;
+    font-family: Roboto;
+    font-weight: 400;
+    padding: 10px;
+    border-bottom: 1px solid #e7e7ea;
+  }
 
   &__item {
     height: 70px;

@@ -2,7 +2,13 @@ import {emit} from "../../../utilities/tools";
 import {template, createElement} from "../../../utilities/travrs";
 require('./revision.scss');
 
-const scaffold = ({date, user, avatar}) =>`
+// Component scaffold
+const scaffold = `
+  div.cnxb-revisions >
+    h4 > "Revision"
+`;
+
+const scaffolds = ({date, user, avatar}) =>`
   div.cnxb-revisions__sections >
     div.cnxb-revisions__item[data-version="${date}"] >
       div.cnxb-revisions__avatar[style="background-color:${avatar};"]
@@ -18,7 +24,7 @@ const scaffold = ({date, user, avatar}) =>`
 
 export default (function Revision () {
   // Create UI element.
-  const element = createElement('div.cnxb-revisions');
+  const element = template(scaffold);
 
   // Latest revision.
   const latest = {};
@@ -45,7 +51,7 @@ export default (function Revision () {
     // Set latest revision.
     latest[revision.date] = revision;
     // Append UI.
-    element.appendChild(template(scaffold(revision)));
+    // element.appendChild(template(scaffold(revision)));
     // Return latest revision for 'initialCompare'.
     return revision;
   };

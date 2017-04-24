@@ -1,4 +1,5 @@
-.cnxb__inlineToolbox {
+// Styles for Select-Inline-Toolbox.
+.cnxb-inline-toolbox {
   opacity: 0;
   z-index: 3500;
   position: fixed;
@@ -6,6 +7,7 @@
   transform: translateZ(0);
   transition: visibility 0s linear 0.3s, opacity .3s ease, top .4s ease, left .4s ease, transform .3s ease;
 
+  // Show.
   &.active {
     opacity: 1;
     visibility:visible;

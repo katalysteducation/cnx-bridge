@@ -8,8 +8,10 @@ import History from "../ui/history";
 import Content from "../ui/content";
 import Toolbar from "../ui/toolbar";
 import Toolbox from "../ui/toolbox";
+import Outliner from "../ui/outliner";
 import Comments from "../ui/comments";
 import Revision from "../ui/revision";
+import Messenger from "../ui/messenger";
 import pscroll from "perfect-scrollbar";
 
 // Editors.
@@ -34,6 +36,7 @@ const scaffold = `
         @toolbox
       div.cnxb__outliner
         @outliner
+      @messages
     div.cnxb__workspace >
       nav.cnxb__toolbar
         @toolbar
@@ -42,11 +45,6 @@ const scaffold = `
     @proxy
 `;
 
-
-// FIXME: Implement this as component.
-const Messenger = {
-  log (message) { console.log(message)}
-}
 
 // ------------------------------------------------
 // ---- BRIDGE CORE ----------------
@@ -62,13 +60,14 @@ export default function Bridge (root) {
 
   // UI's panels switcher.
   const contentPanels = Panels(Content.element);
-  const outlinerPanels = Panels(Revision.element, Comments.element, History.element);
+  const outlinerPanels = Panels(Outliner.element, Revision.element, History.element, Comments.element);
 
   // Tools DOM references (travrs' refs).
   const tools = {
     // Left-hand side menu.
     toolbox: Toolbox.element,
     outliner: outlinerPanels.view,
+    messages: Messenger.element,
     // Workspace.
     toolbar: Toolbar.element,
     content: contentPanels.view,
@@ -87,7 +86,10 @@ export default function Bridge (root) {
       'span[data-select="math"]': new MathEditor(tools.proxy),
       'del, ins': new MergeEditor(pubsub),
       '#text': new StyleEditor(pubsub)
-    }
+    },
+
+    // Open Options Callback.
+    optionsHook: undefined,
   };
 
 
@@ -125,6 +127,10 @@ export default function Bridge (root) {
       console.log(toCNXML(Content.element));
     }
 
+    // Alt + m -> Show test messahe
+    if (event.altKey && event.key === 'm') {
+
+    }
   };
 
 
@@ -188,7 +194,7 @@ export default function Bridge (root) {
   const removeComment = (event) => {
     if (event.detail.id) {
       const commnet = document.getElementById(event.detail.id);
-      commnet ? commnet.outerHTML = commnet.innerHTML : Messenger.log('Commen does not exist in content');
+      commnet ? commnet.outerHTML = commnet.innerHTML : Messenger.warn('Commen does not exist in content');
     }
   };
 
@@ -207,7 +213,6 @@ export default function Bridge (root) {
         contentPanels.view.scrollTop = comment.parentNode.offsetTop + comment.offsetTop;
         pscroll.update(contentPanels.view);
       }
-      else Messenger.log('cipr');
     }
   };
 
@@ -229,6 +234,11 @@ export default function Bridge (root) {
       appendContent(revision.content);
       Comments.replace(revision.comments);
     }
+  };
+
+  // Show Options panel.
+  const showOptionsPanel = (accepted) => {
+    if (accepted && BridgeState.optionsHook) BridgeState.optionsHook();
   };
 
   // ---- PUBSUB HANDLES -------------------
@@ -253,6 +263,19 @@ export default function Bridge (root) {
     Comments.fill(latest.comments);
     // Compare with latest version.
     compare(latest.content);
+  };
+
+  // Take proper action according to the occured error.
+  const detectStartupErrors = (data) => {
+    // Unidentified error.
+    if (!data.error) console.warn(data);
+    // When no connection with Bridge Archive Database.
+    else if (data.type === 'archive-connection-error') {
+      // Disable comments mode in inline StyleEditor.
+      BridgeState.editors['#text'].disableComments();
+      // Display warning message.
+      Messenger.warn('You are not connected to the Bridge Archive Database. Making revisions will not be possible.', showOptionsPanel, 'CONNECT', 'CANCEL');
+    }
   };
 
 
@@ -333,6 +356,9 @@ export default function Bridge (root) {
     if (!root.classList.contains('passive')) toggle();
   }
 
+  // Add hook to call options panel.
+  const showOptions = (callback) => BridgeState.optionsHook = callback;
+
   // ---------------------------------
   // ---- STAR UP THE APP ------------
   // ---------------------------------
@@ -346,12 +372,11 @@ export default function Bridge (root) {
     Initialize(BridgeState.current).then(appendContent)
   ])
   .then(initialCompare)
-  .catch(console.warn);
-
+  .catch(detectStartupErrors);
 
   // Add history antries.
   Storage.history.then(History.fill);
 
   // Public API.
-  return { save, toggle, recover, reload };
+  return { save, toggle, recover, reload, showOptions };
 };

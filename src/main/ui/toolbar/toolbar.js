@@ -21,7 +21,7 @@ const scaffold = `
 
 export default (function Toolbar () {
   let active;
-  const refs = { label: createElement('div.cnxb-info-label', 'Legacy content') };
+  const refs = { label: createElement('div.cnxb-toolbar-prompter', 'Legacy content') };
   const element = template(refs, scaffold);
 
   const clickHandle = (event) => {

@@ -1,18 +1,21 @@
+// ---- IMPORT BUNDLE -------------
+
 @import "../../../node_modules/perfect-scrollbar/dist/css/perfect-scrollbar.min.css";
-@import "./editable.scss";
+@import "./content.scss";
 @import "./ieditor.scss";
 @import "./select.scss";
 @import "./toggle.scss";
-@import "./trash.scss";
 @import "./cnxml.scss";
 @import "./diff.scss";
 
-$tool-height: 40px;
-$app-margin: 15px;
+// ---- VARIABLES -----------------
+
 $primary: #3174f1;
+$tool-height: 40px;
 $separator: #e7e7ea;
 
-// Main CNX Bridge class.
+// ---- CNX BRIDGE CORE -----------
+
 .cnxb {
   top: 0;
   left: 0;
@@ -59,13 +62,25 @@ $separator: #e7e7ea;
 
     & button {
       width: 44px;
-      color: #333;
       height: 40px;
       border: none;
-      @extend %glass;
+      color: #797979;
       cursor: pointer;
       background: none;
+      position: relative;
       transition: background .3s ease, color .3s ease;
+
+      // Glass.
+      &:before {
+        content: ' ';
+        top: 0;
+        left: 0;
+        z-index: 10;
+        width: 100%;
+        height: 100%;
+        display: block;
+        position: absolute;
+      }
 
       &.active,
       &:active {
@@ -127,8 +142,8 @@ $separator: #e7e7ea;
       left:0;
       right: 0;
       bottom: 0;
+      margin: 0 15px;
       position: absolute;
-      margin: 0 $app-margin;
     }
   }
 
@@ -149,7 +164,7 @@ $separator: #e7e7ea;
   }
 }
 
-// Class for document body.
+// Class for document.body
 .passive {
   overflow: hidden;
 }

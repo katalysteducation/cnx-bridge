@@ -110,7 +110,7 @@ const getCurrentConfig = () => new Promise((resolve) =>
 // If Bridge have access to backend and all required credentials, then test the connection against server close session.
 const getCurrentModule = ({ user, status, token, pin, avatar }) => {
   // Fail if state is inactive.
-  if (status !== 'active') throw 'Storage :: No acces to Archive server.';
+  if (status !== 'active') throw { error: true, type: 'archive-connection-error', message: 'Storage :: No acces to Archive server.'};
   // Get module id.
   const id = getModuleId();
   // Sign request headers with authorization token.

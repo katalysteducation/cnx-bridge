@@ -1,5 +1,6 @@
 import {template, createElement} from "../../../utilities/travrs";
 
+// Create Response Element.
 export const responseEl = ({avatar, date, user, note}) =>
   template(`
   div.cnxb-comment
@@ -12,6 +13,7 @@ export const responseEl = ({avatar, date, user, note}) =>
   `);
 
 
+// Create Comment Element.
 export const commentEl = ({id, avatar, date, user, note, responses = []}) => {
   const refs = {
     responses: responses.reduce((result, res) => {

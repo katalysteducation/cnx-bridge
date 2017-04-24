@@ -54,7 +54,7 @@ export default (function Connect () {
   };
 
 
-  // listen fo action in channel.
+  // listen for action in channel.
   // USE-IN: background.js
   const listen = (channel, address, callback) => {
     if (!channel || !address || !callback)

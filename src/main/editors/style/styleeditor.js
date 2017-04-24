@@ -33,7 +33,7 @@ const styleScaffold =`
       i.material-icons > "format_italic"
     button.cnxb-math-editor__accept[title="Term" data-action="term"]
       i.material-icons > "star_border"
-    button.cnxb-math-editor__accept[title="Add comment" data-action="comment"]
+    button#cnxb-cmb.cnxb-math-editor__accept[title="Add comment" data-action="comment"]
       i.material-icons > "forum"
     p.cnxb-style-editor__comment[contenteditable="true"]
 `;
@@ -148,5 +148,9 @@ export default function StyleEditor (pubsub) {
     };
   };
 
-  return { element, select };
+  const disableComments = () => {
+    element.querySelector('#cnxb-cmb').style.display = 'none';
+  };
+
+  return { element, select, disableComments };
 };

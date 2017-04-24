@@ -1,0 +1,105 @@
+.cnxb__messenger {
+  left: 0;
+  bottom: 0;
+  width: 300px;
+  padding: 10px;
+  display: block;
+  position: fixed;
+
+  &-panel {
+    opacity: 0;
+    padding: 0 15;
+    max-height: 0;
+    margin-top: 0;
+    display: flex;
+    bottom: -200px;
+    background: white;
+    border-radius: 4px;
+    position: relative;
+    transform: translateZ(0);
+    box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
+    transition: transform .3s ease, opacity .3s ease, margin .3s ease, padding .3s ease, bottom .7s ease, max-height .3s ease;
+
+    // Show.
+    &.show {
+      bottom: 0;
+      opacity: 1;
+      margin-top: 10px;
+      max-height: 500px;
+      transform: translateZ(0);
+      padding: 20px 15px 15px 15px;
+    }
+
+    // Color classes.
+    &.warn {
+      background: #f9b300;
+    }
+
+    &.error {
+      background: #f44336;
+    }
+
+    &.success {
+      background: #8bc34a;
+    }
+
+    &.short .cnxb__messenger-message {
+      margin-top: 7px;
+    }
+  }
+
+  &-icon {
+    display: inherit;
+    margin-right: 15px;
+    & > i {
+      font-size: 30px;
+    }
+  }
+
+  &-counter {
+    width: 24px;
+    height: 19px;
+    display: block;
+    margin: 0 auto;
+    font-size: 12px;
+    padding-top: 5px;
+    background: #ccc;
+    text-align: center;
+    border-radius: 50%;
+  }
+
+  &-buttons {
+
+    & > button {
+      padding: 0;
+      color: #333;
+      border: none;
+      opacity: 0.8;
+      cursor: pointer;
+      background: none;
+      margin-top: 15px;
+      margin-right: 10px;
+      border-radius: 2px;
+      text-transform: uppercase;
+      transition: .3s ease color;
+
+
+      &.accept:hover {
+        color: #1e8e26;
+      }
+
+      &.cancel:hover {
+        color: #be2814;
+      }
+
+      &:focus {
+        color: #666;
+        outline: none;
+      }
+
+      &:active {
+        opacity: 1;
+      }
+    }
+  }
+}

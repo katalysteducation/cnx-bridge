@@ -22,7 +22,7 @@
     "app/jax/jax.config.js",
     "app/jax/jax.js"
   ],
-  "content_security_policy": "script-src 'self' https://cdn.mathjax.org; object-src 'self'",
+  "content_security_policy": "script-src 'self' https://cdnjs.cloudflare.com; object-src 'self'",
   "permissions": [
     "clipboardRead",
     "clipboardWrite",

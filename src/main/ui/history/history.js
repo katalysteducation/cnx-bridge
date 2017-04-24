@@ -2,9 +2,10 @@ import {emit, arrayToObject} from "../../../utilities/tools";
 import {template, createElement} from "../../../utilities/travrs";
 require('./history.scss');
 
+// Component scaffold
 const scaffold = `
-  div.cnxb-history__sections >
-    @revisions
+  div.cnxb-history >
+    h4 > "History"
 `;
 
 const revisionItem = (id, date, user, avatar) =>`
@@ -21,7 +22,7 @@ const revisionItem = (id, date, user, avatar) =>`
 
 export default (function History () {
   // Create UI element.
-  const element = createElement('div.cnxb-history');
+  const element = template(scaffold);
 
   // Storege of all revision.
   const storage = {};
@@ -59,7 +60,7 @@ export default (function History () {
     sections.revisions = template(revsTemplate);
 
     // Append UI.
-    element.appendChild(template(sections, scaffold));
+    // element.appendChild(template(sections, scaffold));
   };
 
   // Public API.

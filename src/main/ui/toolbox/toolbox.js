@@ -1,5 +1,5 @@
-import { emit } from "../../../utilities/tools";
-import { template, createElement } from "../../../utilities/travrs";
+import {emit} from "../../../utilities/tools";
+import {template, createElement} from "../../../utilities/travrs";
 
 /*
 div >
@@ -19,12 +19,14 @@ div >
 
 const scaffold = `
   div >
-    button[title="Lates Revision" data-action="revision" data-index="0"]
-      i.material-icons > "rate_review"
-    button[title="Comments" data-action="refs" data-index="1"]
-      i.material-icons > "chat"
-    button[title="Reviews History" data-action="history" data-index="2"]
+    button.active[title="Outliner" data-action="content" data-index="0"]
+      i.material-icons > "reorder"
+    button[title="Revision" data-action="revision" data-index="1"]
+      i.material-icons > "remove_red_eye"
+    button[title="History" data-action="history" data-index="2"]
       i.material-icons > "history"
+    button[title="Comments" data-action="refs" data-index="3"]
+      i.material-icons > "chat"
 `;
 
 export default (function Toolbox (...panels) {

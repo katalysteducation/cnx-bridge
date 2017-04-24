@@ -29,7 +29,7 @@ const findEditor = (editors) => {
 // and set its position.
 const inlineToolbox = (root) => {
   const it = document.createElement('div');
-  it.className = 'cnxb__inlineToolbox';
+  it.className = 'cnxb-inline-toolbox';
   root.appendChild(it);
 
   // Block actions inside editor frame.

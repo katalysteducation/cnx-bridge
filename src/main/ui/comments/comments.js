@@ -1,14 +1,21 @@
-import {commentEl, responseEl} from "./comment";
+import {commentEl, responseEl} from "./templates";
 import {emit, date, Memo} from "../../../utilities/tools";
 import {template, createElement} from "../../../utilities/travrs";
 require('./comments.scss');
+
+// Component scaffold
+const scaffold = `
+  div.cnxb-comments >
+    h4 > "Comments"
+`;
 
 // ------------------------------------------------
 // ---- COMMENTS CORE ----------------
 // ------------------------
 
 export default (function Comments () {
-  const element = createElement('div.cnxb-comments');
+  // const element = createElement('div.cnxb-comments');
+  const element = template(scaffold);
   const commentsList = new Map();
   const userData = {};
 

@@ -20,6 +20,11 @@ connect.pipe('menu', 'recover').to('bridge');
 connect.pipe('menu', 'rdate').to('bridge');
 connect.pipe('bridge', 'rdate').to('menu');
 
+// Show options panel when content-script demend it.
+connect.listen('bridge','options', () => {
+	chrome.runtime.openOptionsPage();
+});
+
 // Activete Popup Menu under CNX-Bridge icon.
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	// Allow only for one working CNX-Bridge instacne.
