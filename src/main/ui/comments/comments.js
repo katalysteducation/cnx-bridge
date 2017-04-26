@@ -119,16 +119,19 @@ export default (function Comments () {
     const final = list.reduce((result, comment) => {
       if (!commentsList.has(comment.id)) result.set(comment.id, { model: comment, ref: append(commentEl(comment)) });
       return result;
-    }, commentsList);
+    }, commentsList);    
+    if (list.length === 0) element.appendChild(empty);
     return final;
   }
 
   // Remove comments presents on the 'list'.
   const remove = (list) => {
     list.forEach(id => {
-      const comment = commentsList.get(id).ref;
-      comment.parentNode.removeChild(comment);
-      commentsList.delete(id);
+      const comment = commentsList.get(id);
+      if (comment) {
+        comment.parentNode.removeChild(comment.ref);
+        commentsList.delete(id);
+      }
     });
   };
 

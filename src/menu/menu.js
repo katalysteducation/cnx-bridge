@@ -3,6 +3,7 @@ require('./menu.scss');
 
 const initialize = () => {
   const saveBtn = document.getElementById('save');
+  const draftBtn = document.getElementById('draft');
   const bridgeBtn = document.getElementById('bridge');
   const reloadBtn = document.getElementById('reload');
   const recoverBtn = document.getElementById('recover');
@@ -34,6 +35,11 @@ const initialize = () => {
   // Reload content in bridge workspace.
   reloadBtn.addEventListener('click', (event) => {
     uiChannel.send('reload');
+  });
+
+  // Save current document draft in localStorage.
+  draftBtn.addEventListener('click', (event) => {    
+    uiChannel.send('draft');
   });
 };
 

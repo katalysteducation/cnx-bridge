@@ -1,22 +1,7 @@
 import {emit} from "../../../utilities/tools";
 import {template, createElement} from "../../../utilities/travrs";
 
-/*
-div >
-  button.active[title="Content" data-action="content" data-index="0"]
-    i.material-icons > "reorder"
-  button[title="Index" data-action="index" data-index="1"]
-    i.material-icons > "assignment"
-  button[title="References" data-action="refs" data-index="3"]
-      i.material-icons > "navigation"
-  button[title="Lates Review" data-action="commnets" data-index="5"]
-    i.material-icons > "rate_review"
-  button[title="Comments" data-action="refs" data-index="3"]
-    i.material-icons > "chat"
-  button[title="Reviews History" data-action="history" data-index="4"]
-    i.material-icons > "history"
-*/
-
+// Panels scaffold.
 const scaffold = `
   div >
     button.active[title="Outliner" data-action="content" data-index="0"]
@@ -28,6 +13,10 @@ const scaffold = `
     button[title="Comments" data-action="refs" data-index="3"]
       i.material-icons > "chat"
 `;
+
+// ------------------------------------------------
+// ---- TOOLBOX CORE ----------------
+// ------------------------
 
 export default (function Toolbox (...panels) {
   const element = template(scaffold);
@@ -47,9 +36,9 @@ export default (function Toolbox (...panels) {
   };
 
   // Hide buttons with given IDs.
-  const disable = (...ids) => {
+  const disableIndex = (...ids) => {
     Array.from(element.querySelectorAll('button')).forEach(button => {
-      if (~ids.indexOf(parseInt(button.dataset.index))) button.classList.add('disable');
+      if (~ids.indexOf(parseInt(button.dataset.index))) button.style.display = 'none';
     });
   };
 
@@ -57,5 +46,5 @@ export default (function Toolbox (...panels) {
   element.addEventListener('click', clickHandle);
 
   // Public API.
-  return { element, disable }
+  return { element, disableIndex }
 }());

@@ -24,8 +24,8 @@ import diff from "../diff";
 import {toHTML, toCNXML} from "../parser";
 import PubSub from "../../utilities/pubsub";
 import {template, createElement} from "../../utilities/travrs";
-import {mergeSameSiblings, rejectAllChanges} from "../diff/merge";
-import {uid, date, getNodesOut, Memo} from "../../utilities/tools";
+import {uid, date, getNodesOut, Memo, humanizeDate} from "../../utilities/tools";
+import {mergeSameSiblings, rejectAllChanges, acceptAllChanges} from "../diff/merge";
 
 require('../styles/bridge.scss');
 
@@ -79,17 +79,16 @@ export default function Bridge (root) {
   const BridgeState = {
     // Extract current content from the legacy promise.
     current: Storage.legacy().content,
-
     // Describe HTML selectors for inline editors.
     editors: {
-      // 'selector' : editorInstance(),
       'span[data-select="math"]': new MathEditor(tools.proxy),
       'del, ins': new MergeEditor(pubsub),
       '#text': new StyleEditor(pubsub)
     },
-
-    // Open Options Callback.
+    // Open Options Hook.
     optionsHook: undefined,
+    // Recent displayed revisoin date.
+    recentRevDate: undefined
   };
 
 
@@ -102,8 +101,6 @@ export default function Bridge (root) {
 
   const BridgeUI = template(tools, scaffold);
   root.appendChild(BridgeUI);
-
-  let diffs;
 
   // ---- EVENT HANDLES ----------------
 
@@ -123,16 +120,20 @@ export default function Bridge (root) {
 
     // Alt + x -> Show current CNXML.
     if (event.altKey && event.key === 'x') {
-      rejectAllChanges(diffs);
+      rejectAllChanges(Array.from(Content.element.querySelectorAll('del, ins')));
       console.log(toCNXML(Content.element));
     }
 
     // Alt + m -> Show test messahe
     if (event.altKey && event.key === 'm') {
-
+      Messenger.info('You are trying to compare the same versions')
     }
   };
 
+
+  // ---- HELPERS -------------------------
+
+  const isResolved = () => !Content.element.querySelector('del, ins');
 
   // ---- ELEMENTS HANDLES ----------------
 
@@ -155,24 +156,26 @@ export default function Bridge (root) {
     else select.dismiss();
   };
 
-
-  // Compare oldCNXML DOM sttucture with current one.
-  const compare = (oldCNXML) => {
-    const diffA = toHTML(oldCNXML).querySelector('div[data-type=content]');
-    const diffB = createElement('div', Content.element.innerHTML);
-
-    Content.element.innerHTML = '';
-    Array.from(diff(diffA, diffB).children).forEach(element => {
-      Content.element.appendChild(element);
-    })
-
+  // Compare 'newVersion' of DOM with the 'oldVersion'.
+  // NOTE: Without flag 'silet' set to TRUE newVersion will be override by the copmaration.
+  const compare = (newVersion) => (oldVersion, silent = false) => {
+    const content = silent ? newVersion.cloneNode(true) : newVersion;
+    const diffA = toHTML(oldVersion).querySelector('div[data-type=content]');
+    const diffB = createElement('div', content.innerHTML);
+    // Clear content.
+    content.innerHTML = '';
+    // Append diffs.
+    Array.from(diff(diffA, diffB).children).forEach(element => content.appendChild(element));
     // Merge siblings & get only diffs children.
-    diffs = mergeSameSiblings(Array.from(Content.element.querySelectorAll('del, ins')));
-
-    // Re-render Math.
-    tools.proxy.dataset.reRender = true;
+    mergeSameSiblings(Array.from(newVersion.querySelectorAll('del, ins')));
+    // Diff element reference.
+    return content;
   };
 
+  // Compare input tree with 'Content.element'.
+  const compareWithContent = compare(Content.element);
+
+  // Switch Outliner Panels wthen Toolbox btn clicked.
   const switchOutlinerPanels = (event) => {
     const {tab, index} = event.detail;
     outlinerPanels.select(index);
@@ -194,7 +197,7 @@ export default function Bridge (root) {
   const removeComment = (event) => {
     if (event.detail.id) {
       const commnet = document.getElementById(event.detail.id);
-      commnet ? commnet.outerHTML = commnet.innerHTML : Messenger.warn('Commen does not exist in content');
+      commnet ? commnet.outerHTML = commnet.innerHTML : Messenger.warn('Comment does not exist in content');
     }
   };
 
@@ -216,24 +219,73 @@ export default function Bridge (root) {
     }
   };
 
-  const compareRevision = (event) => {
-    const {revision} = event.detail;
-    // Quit if there is no 'revision' OR if prev. comaratino not ended.
-    if (!revision || Content.element.querySelector('del, ins')) return;
-    // Compare revision with current content.
-    compare(revision.content);
-    // Append comment from diff version
-    Comments.fill(revision.comments);
+
+  // ---- REVISIONS HANDLES ----------------
+
+  const toolbarRevisionHandeler = ({detail}) => {
+    if (!detail || !detail.action) return;
+    const diffs = Array.from(Content.element.querySelectorAll('del, ins'));
+    detail.action === 'reject' ? rejectAllChanges(diffs) : acceptAllChanges(diffs);
   };
 
   // Display selected revision.
   const displayRevision = (event) => {
-    const {revision, label} = event.detail;
+    const {revision, label, date} = event.detail;
     if (revision) {
-      Toolbar.label(`Revision ${label}`);
+      BridgeState.recentRevDate = date;
+      Toolbar.revision(false);
+      Toolbar.label(`<span>${label}</span> <span class="cnxb-label">${date}</span>`);
       appendContent(revision.content);
       Comments.replace(revision.comments);
     }
+  };
+
+  // Compare two revisions.
+  const compareRevision = (event) => {
+    const {revision, label, date} = event.detail;
+
+    // Quit if there is no 'revision' OR if prev. comaration not ended.
+    if (!revision || !isResolved()) {
+      Messenger.info('You neet to resolve all conflict to run another DIFF operation');
+      return;
+    }
+    else if (BridgeState.recentRevDate === date) {
+      Messenger.info('You are try to comapre the same revisoin');
+      return;
+    }
+    // Show revisoin buttons.
+    Toolbar.revision(true);
+    // Set Toolbar label.
+    Toolbar.label(`<span>${label}</span> <span class="cnxb-label" title="Content version">${BridgeState.recentRevDate}</span> ⇌ <span class="cnxb-label" title="Compare verion">${date}</span>`);
+    // Compare revision with current content.
+    compareWithContent(revision.content);
+    // Append comment from diff version
+    Comments.fill(revision.comments);
+    // Re-render Math.
+    tools.proxy.dataset.reRender = true;
+  };
+
+
+  // Replcae Content with diffed revision.
+  const replaceRevision = (event) => {
+    const {revision, label, date} = event.detail;
+    // Continue function.
+    const continueReplacing = (accepted) => {
+      if (!accepted) return;
+      // Hide revisoin buttons.
+      Toolbar.revision(true);
+      // Set Toolbar label.
+      Toolbar.label(`<span>${label}</span> <span class="cnxb-label">${date}</span>`);
+      // Replace content.
+      Content.element.innerHTML = revision.innerHTML;
+      // Re-render Math.
+      tools.proxy.dataset.reRender = true;
+    };
+
+    // Checkd if replace dosn't override Current Draft?
+    if (~Toolbar.element.textContent.indexOf('Current Draft'))
+      Messenger.warn('This action will override your Current Draft', continueReplacing, 'Continue', 'Abort');
+    else continueReplacing(true);
   };
 
   // Show Options panel.
@@ -243,27 +295,41 @@ export default function Bridge (root) {
 
   // ---- PUBSUB HANDLES -------------------
 
+  const setCurrentDraft = () => {
+    Toolbar.label(`<span>Current Draft</span>`);
+    BridgeState.recentRevDate = 'Current Draft';
+    // Save local copy.
+    Storage.saveDraft({
+      content: toCNXML(Content.element),
+      comments: Comments.pull()
+    });
+  };
+
   const addNewComment = ({ref, content}) => {
     const id = uid();
     ref.id = id;
     Comments.add(id, content);
   };
 
-  // Checkd if comments were removed from the Content, and if its true remove them from the Comments panel.
-  const checkComments = ({ids}) => {
+  const onConflictResolve = ({ids}) => {
+    // Checkd if comments were removed from the Content, and if its true remove them from the Comments panel.
     if (ids.length > 0) Comments.remove(ids.filter(id => !document.getElementById(id)));
+    // Check if there more diffs in current content.
+    if (isResolved()) setCurrentDraft();
   };
 
   // ---- FIRST RUN ------------------------
 
-  const initialCompare = ([latest]) => {
-    // Quit if not latest revision.
-    if (!latest) return;
-    // Add coments for current revision.
-    Comments.fill(latest.comments);
-    // Compare with latest version.
-    compare(latest.content);
+  const manageRevisions = (revisions) => {
+    History.apply(revisions);
+    const latest = Revision.setup(revisions, compareWithContent);
+    // Add comments from latest revisoin.
+    if (latest) {
+      Comments.fill(latest.comments);
+      BridgeState.recentRevDate = humanizeDate(latest.date);
+    }
   };
+
 
   // Take proper action according to the occured error.
   const detectStartupErrors = (data) => {
@@ -273,6 +339,8 @@ export default function Bridge (root) {
     else if (data.type === 'archive-connection-error') {
       // Disable comments mode in inline StyleEditor.
       BridgeState.editors['#text'].disableComments();
+      // Disable toolbar archive tools.
+      Toolbox.disableIndex(1, 2, 3);
       // Display warning message.
       Messenger.warn('You are not connected to the Bridge Archive Database. Making revisions will not be possible.', showOptionsPanel, 'CONNECT', 'CANCEL');
     }
@@ -294,6 +362,10 @@ export default function Bridge (root) {
     // Revision listeners.
     Revision.element.addEventListener('display', displayRevision);
     Revision.element.addEventListener('compare', compareRevision);
+    Revision.element.addEventListener('replace', replaceRevision);
+
+    // Revision listeners.
+    Toolbar.element.addEventListener('revision', toolbarRevisionHandeler);
 
     // Comments listeners.
     Comments.element.addEventListener('remove', removeComment);
@@ -311,9 +383,9 @@ export default function Bridge (root) {
     pscroll.initialize(outlinerPanels.view, { suppressScrollX: true });
 
     // PubSub listeners.
-    pubsub.subscribe('editor.unwrap', checkComments);
     pubsub.subscribe('editor.comment', addNewComment);
     pubsub.subscribe('editor.dismiss', select.dismiss);
+    pubsub.subscribe('editor.unwrap', onConflictResolve);
 
     // Finish.
     resolve(cnxml);
@@ -322,28 +394,40 @@ export default function Bridge (root) {
 
   // ---- API METHODS ----------------
 
+  // Show/ Hide CNX-Bridge UI.
   const toggle = () => {
     root.classList.toggle('passive');
     BridgeUI.classList.toggle('active');
   };
 
-  // Restroe recent saved module from LocalStorage.
+  // Restroe recent saved content data from LocalStorage.
   const recover = () => {
-    const restoreModule = Storage.restore();
-    appendContent(restoreModule.content);
-    Comments.replace(restoreModule.comments);
+    const {date, comments, content} = Storage.restore();
+    appendContent(content);
+    Comments.replace(comments);
+    Toolbar.label(`<span>Recovered </span> <span class="cnxb-label">${humanizeDate(date)}</span>`);
   };
 
   // Save content to the BAD & Legacy.
   const save = () => {
     // Reject diffs markers from CNXML.
-    rejectAllChanges(diffs);
+    rejectAllChanges(Array.from(Content.element.querySelectorAll('del, ins')));
     // Convert current content to CNXML.
     const cnxmlContent = toCNXML(Content.element);
     // Save data.
-    Storage
-      .saveRevision(cnxmlContent, Comments.pull())
-      .then(success => Storage.saveCnxml(cnxmlContent, Storage.legacy().classes));
+    Storage.saveRevision(cnxmlContent, Comments.pull()).then(success => Storage.saveCnxml(cnxmlContent, Storage.legacy().classes));
+    // Notify user.
+    Messenger.info('Saving in progress. Waiting for the Legacy...');
+  };
+
+  // Save current document draft.
+  const draft = () => {
+    if (!isResolved()) {
+      Messenger.info('You neet to resolve all conflict to save Current Draft');
+      return;
+    }
+    setCurrentDraft();
+    Messenger.success('Current Draft was saved');
   };
 
   // Reload data in Bridge's workspace.
@@ -352,6 +436,8 @@ export default function Bridge (root) {
     appendContent(Storage.legacy().content);
     // Clear coments.
     Comments.replace();
+    // Ser toolbar label.
+    Toolbar.label(`<span>Legacy Content</span>`);
     // Open Bridge UI if closed.
     if (!root.classList.contains('passive')) toggle();
   }
@@ -363,20 +449,19 @@ export default function Bridge (root) {
   // ---- STAR UP THE APP ------------
   // ---------------------------------
 
+  // If have access to the Archive, fetch latest & compare verions.
+  // Storage.latest.then(checkRevisions),
   Promise.all([
-    // If have access to Archive fetch latest & compare verions.
-    Storage.latest.then(Revision.fill),
     // Initialzie commnets.
     Storage.config.then(Comments.user),
     // Initialzie app.
     Initialize(BridgeState.current).then(appendContent)
   ])
-  .then(initialCompare)
   .catch(detectStartupErrors);
 
-  // Add history antries.
-  Storage.history.then(History.fill);
+  // Add history entries.
+  Storage.history.then(manageRevisions);
 
   // Public API.
-  return { save, toggle, recover, reload, showOptions };
+  return { save, draft, toggle, recover, reload, showOptions };
 };

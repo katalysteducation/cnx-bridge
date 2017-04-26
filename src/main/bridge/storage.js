@@ -47,7 +47,7 @@ const addRevision = (currentModule, configuration) => (content, comments) =>
         comments: comments,
         content: content.replace(/"/g, '\"')
       });
-      return module;
+      return { content, comments, module };
     });
 
 // Try to reconnect.
@@ -94,11 +94,11 @@ const saveInLegacy = (content, classes, root) => new Promise((resolve, reject) =
 });
 
 // Save local copy of current CNXML.
-const saveLocalCopy = (module) => {
-  const currentModule = module.revisions[module.revisions.length - 1];
-  localStorage.setItem('cnx-bridge-backup', JSON.stringify({ date: date(true), module: currentModule }));
-  return module;
-};
+// const saveLocalCopy = (module) => {
+//   const currentModule = module.revisions[module.revisions.length - 1];
+//   localStorage.setItem('cnx-bridge-backup', JSON.stringify({ date: date(true), module: currentModule }));
+//   return module;
+// };
 
 // Fetch current configuration and convert it to the promise.
 const getCurrentConfig = () => new Promise((resolve) =>
@@ -145,19 +145,24 @@ export default (function Storage() {
   // Get all previous revisions.
   const history = currentModule.then(module => module.revisions);
 
-  // Get the latest revision for current module.
-  const latest = currentModule.then(module => module.revisions.slice(0,1)[0]);
-
   // Create update fn. to update current model with the new revision.
   const updateCurrentModule = addRevision(currentModule, config);
 
 
   // ---- API METHODS ----------------
 
+  // Save current 'content' and 'comments' to the localStorage.
+  // Optionaly pass 'module' instance so it can be pipe into the 'saveRevision' chain.
+  const saveDraft = ({ content, comments, module }) => {
+    localStorage.setItem('cnx-bridge-backup', JSON.stringify({ date: date(true), content, comments }));
+    return module;
+  };
+
   // Save current revision in legacy & Archive.
   const saveRevision = (revision, comments = {}) =>
     updateCurrentModule(revision, comments)
-      .then(saveLocalCopy)
+      // .then(saveLocalCopy)
+      .then(saveDraft)
       .then(client.set.module)
       .catch(console.error);
 
@@ -165,7 +170,7 @@ export default (function Storage() {
   // Get latest saved CNXML from LocalStorage.
   const restore = () => {
     const backup = JSON.parse(localStorage.getItem('cnx-bridge-backup') || false);
-    return backup ? backup.module : undefined;
+    return backup ? {...backup} : undefined;
   }
 
   // Save data in Legacy System.
@@ -180,11 +185,11 @@ export default (function Storage() {
     // Getters.
     config,   // prop -> Promise: { user, avatar, token, pin, backend, status }
     legacy,   // func -> Object:  { content, metadata, classes }
-    latest,   // prop -> Promise: { module.revisions.last }
     history,  // prop -> Promise: { module.revisions }
     restore,  // func -> Object:  { module }
 
     // Setters.
+    saveDraft,    // ({content, comments, module}) -> Promise
     saveCnxml,    // (cnxml) -> Promise
     clearModule,  // (module-db-id) -> Promise
     saveRevision  // (content, comments) -> Promise

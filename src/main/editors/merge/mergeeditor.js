@@ -30,8 +30,8 @@ export default function MergeEditor (pubsub) {
     const commentsIds = getCommentIds(_target);
     // Run selected action.
     action === 'accept' ? accepChange(_target) : rejectChange(_target);
-    // Dismiss popup.
-    pubsub.publish('editor.dismiss').publish('editor.unwrap', { ids:commentsIds });
+    // Dismiss popup.    
+    pubsub.publish('editor.dismiss').publish('editor.unwrap', { ids : commentsIds });
   };
 
   // Main UI element.

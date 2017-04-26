@@ -1,25 +1,32 @@
 $separator: #e7e7ea;
-// $main: #78cc1c;
+$success: #78cc1c;
+$error: #f10c35;
 $main: #3174f1;
+$warn: #f5bf00;
+$bg: #f7f7f7;
 
 .cnxb-revisions {
   padding: 0;
 
   & > h4 {
-    color: #797979;
     margin: 0px;
-    font-size: 18px;
-    font-family: Roboto;
-    font-weight: 400;
     padding: 10px;
+    color: #797979;
+    font-size: 18px;
+    font-weight: 400;
+    font-family: 'Roboto';
     border-bottom: 1px solid #e7e7ea;
   }
-  
-  &__item {
-    height: 70px;
+
+  // Deafult message style (blue).
+  &-check,
+  &-error,
+  &-warning {
+    // color: #797979;
     display: block;
     cursor: pointer;
     background: none;
+    padding: 11px 10px;
     position: relative;
     border-left: 3px solid #EDEDED;
     border-bottom: 1px solid $separator;
@@ -39,50 +46,104 @@ $main: #3174f1;
     &:hover {
       background: #EDEDED;
       border-left: 3px solid $main;
+      & > div.header {
+        color: $main;
+      }
     }
 
-    & h4 {
-      margin: 0px;
-      padding: 0px;
+    & > div.header {
+      font-size: 16px;
+      font-weight: 500;
+      font-family: 'Roboto';
+      transition: color .5s ease;
     }
-  }
 
-  &__avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: inline-block;
-    background:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAwCAYAAABjezibAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAmxJREFUeNrMWd1xwyAMdnJ9D50gbBA2KCN4BI/iETKCR/AIzgbOBu4EpRO4dk+5ozphEMJJdaeHBARfJPSbwzzPlYBqYLvwGa19Ljws3APn0Qowg+uFpzmdJpBh35UDrpvzqePed2CYWIHJLsTaas4ReCUDfCb23uFJuNImpjQ3RkxXw55sTaaCa4hLrowfdyXkm1IA1cJOAC4E0sHZYoBYe0Om51cgy9JiyqH4DVkBQMv9sSlePCMPNJWMRhQJDlubj5HDLPrcV3LqI3ewAGKaCgBkncEF6P47QFMAoC0JcNwBoInc8YdSvHhCOfVdYOo1n3+hHK6lJsZe1wq017KjQkJw1UQetQWC9AxnFykWqDxqGOBMbj5PvUAFKug2kvAV7KEqbFW6YDVQsJ7Q998Ld7DmPGdYw0kT2G9j3pvbkxhmL0Jpzuzdk6jMvqRLNasUoO+VHfH4sTN1khLtIOyL/fSlvaA7AQ/Sg0sB3I3edtBeVVKLOQC1N/L4SJS5eSMQXk3JeLBaOFXwvVmX9GIV6GuldE0JOzEnMZAlLoH1O5hthCwyec9AgXwdkW82s0pkbOECsa3lmAn2thvn1VwTNxKzZD6XJhUgVRo5YcNOZSGXUsKlzGFGboJnFB5jbF6DhXpCQO8Azn+bWCF9CCBVkpsdwfmaDLYUW5On9gngHtyGhkoh7U1PBPfgidLio+1sCraWpVrSxi+3nNc7RJvpHckfEqy9izpCuXQqPGIrMZpbMdkjMcwZXggQ3/0LUP9jgJoC6F4I0FEAceX7arrh6ZZLndU9iXwMbg0zj//gRiIevoo6KHbtjwADAANtK+8bKomvAAAAAElFTkSuQmCC');
-    background-size: 28px;
-    margin: 10px 8px 5px 5px;
-    background-repeat: no-repeat;
-    background-position: center 4px;
-  }
-
-  &__diff {
-    z-index: 100;
-    margin-top: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    position: absolute;
-    display: inline-block;
-    transition: color .3s ease;
-
-    &:hover {
-      color: $main;
+    & > div.date {
+      color: #999;
+      font-size: 13px;
+      line-height: 15px;
+      margin-bottom: 1px;
     }
   }
 
-  &__content {
-    padding-top: 10px;
-    vertical-align: top;
-    display: inline-block;
+  // Error message.
+  &-error, &-error:hover  {
+    cursor: auto;
+    background: #EDEDED;
+    border-left: 3px solid $error;
+
+    & > div.header {
+      color: $error;
+    }
+
+    & > div.info {
+      color: #999;
+    }
   }
 
-  &__subtitle {
-    margin: 0;
-    color: #666;
-    font-size: 12px;
-    font-style: italic;
+  &-buttons {
+    padding: 10px;
+
+    & > button {
+      color: #333;
+      border: none;
+      padding: 5px;
+      background: $bg;
+      cursor: pointer;
+      border-radius: 2px;
+      margin-right: 15px;
+      text-transform: uppercase;
+      border-bottom: 2px solid transparent;
+      transition: color .3s, border .3s ease, background .3s ease;
+
+      &.accept{
+        &:hover {
+          border-bottom: 2px solid $success;
+        }
+        &:active {
+          background: $separator;
+          border-bottom: 2px solid darken($success, 10%);
+        }
+      }
+
+      &.warning{
+        &:hover {
+          border-bottom: 2px solid $warn;
+        }
+        &:active {
+          background: $separator;
+          border-bottom: 2px solid darken($warn, 10%);
+        }
+      }
+
+      &.error {
+        &:hover {
+          border-bottom: 2px solid $error;
+        }
+        &:active {
+          background: $separator;
+          border-bottom: 2px solid darken($error, 10%);
+        }
+      }
+
+      &:focus {
+        outline: none;
+      }
+    }
+  }
+
+  // Warning message.
+  &-warning, &-warning:hover  {
+    cursor: auto;
+    background: #EDEDED;
+    border-left: 3px solid $warn;
+
+    & > div.header {
+      color: $warn;
+    }
+
+    & > div.info {
+      color: #999;
+    }
   }
 }

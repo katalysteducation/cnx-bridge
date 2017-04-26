@@ -6,38 +6,40 @@ require('./toolbar.scss');
 const scaffold = `
   div.cnxb-toolbar >
     @label
-`;
+    @buttons`;
 
-/*
-const scaffold = `
-  div.cnxb-toolbar >
-    button.cnxb-toolbar__btn[title="Accept change" data-action="accept"] > "Accept"
-    button.cnxb-toolbar__btn[title="Reject change"] data-action="reject" > "Reject"
-    button.cnxb-toolbar__btn[title="Accept all changes" data-action="accept" data-repeat="true"] > "Accept All"
-    button.cnxb-toolbar__btn[title="Reject all changes" data-action="reject" data-repeat="true"] > "Reject All"
-`;
-*/
-//     button.cnxb-toolbar__btn.comments[title="Toggle comments" data-action="comments"] > "Comments"
+const buttonScaffols = `
+  div.cnxb-merge-btns >
+    button.accept[title="Accept all changes" data-action="accept"] > "Accept All"
+    button.reject[title="Reject all changes" data-action="reject"] > "Reject All"`;
+
+// ------------------------------------------------
+// ---- TOOLBAR CORE ----------------
+// ------------------------
 
 export default (function Toolbar () {
-  let active;
-  const refs = { label: createElement('div.cnxb-toolbar-prompter', 'Legacy content') };
+
+  const refs = {
+    label: createElement('div.cnxb-toolbar-prompter', 'Legacy content'),
+    buttons: template(buttonScaffols)
+  };
+
   const element = template(refs, scaffold);
 
   const clickHandle = (event) => {
-    const {action, repeat} = event.target.dataset;
-    action && element.dispatchEvent(emit('action', {action, repeat}));
+    const {action} = event.target.dataset;
+    action && element.dispatchEvent(emit('revision', { action }));
   };
 
-  const toggle = (flag = true) => {
-    flag ? element.classList.add('active') : element.classList.remove('active')
+  const revision = (flag = true) => {
+    flag ? refs.buttons.classList.add('active') : refs.buttons.classList.remove('active')
   };
 
-  const label = (text) => {
-    refs.label.innerHTML = text;
+  const label = (html) => {
+    refs.label.innerHTML = html;
   };
 
   element.addEventListener('click', clickHandle);
 
-  return { element, toggle, label };
+  return { element, revision, label };
 }());

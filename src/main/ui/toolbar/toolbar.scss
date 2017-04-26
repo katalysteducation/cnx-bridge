@@ -1,9 +1,67 @@
-.cnxb-toolbar {
-  padding: 10px 25px 5px 30px;
+.cnxb {
 
-  &-prompter {
-    color: #797979;
-    font-size: 14px;
-    font-weight: 400;
+  &-toolbar {
+    display: flex;
+    padding: 10px 45px 5px 30px;
+    justify-content: space-between;
+
+    &-prompter {
+      color: #797979;
+      font-size: 14px;
+      font-weight: 400;
+    }
+  }
+
+  &-label {
+    margin: 0 6px;
+    font-size: 13px;
+    cursor: pointer;
+    background: #ddd;
+    padding: 1px 3px;
+    font-weight: 500;
+    border-radius: 2px;
+  }
+
+  &-merge-btns {
+    opacity: 0;
+    visibility: hidden;
+    transition: visibility 0s linear 0.5s, opacity .3s ease;
+
+    &.active {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity .3s ease, visibility 0s;
+    }
+
+    & > button {
+      color: #333;
+      border: none;
+      font-size: 11px;
+      cursor: pointer;
+      padding: 3px 7px;
+      background: #ddd;
+      margin-left: 10px;
+      border-radius: 10px;
+      text-transform: uppercase;
+      transition: background .3s ease, color .3s ease;
+
+      &:focus {
+        outline: none;
+      }
+
+      &:hover {
+        background: darken(#ddd, 10%);
+      }
+
+      &.accept:hover {
+        color: white;
+        background: #78cc1c;
+      }
+
+      &.reject:hover {
+        color: white;
+        background: #f10c35;
+      }
+    }
   }
 }

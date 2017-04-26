@@ -1,4 +1,4 @@
-import {emit, arrayToObject} from "../../../utilities/tools";
+import {emit, humanizeDate} from "../../../utilities/tools";
 import {template, createElement} from "../../../utilities/travrs";
 require('./history.scss');
 
@@ -9,18 +9,20 @@ const scaffold = `
 `;
 
 const revisionItem = (id, date, user, avatar) =>`
-  div.cnxb-history__item[data-version="${date}"] >
-    div.cnxb-history__avatar[style="background-color:${avatar};"]
-    div.cnxb-history__content >
-      h4.cnxb-history__header > "Revision ${id}"
-      p.cnxb-history__subtitle > "${date} / ${user}"
-      span.cnxb-history__diff[data-version="${date}" data-diff="true"] > "DIFF"`;
+  div.cnxb-history-item[title="Show this revision" data-version="${date}"] >
+    div.cnxb-history-header > "${humanizeDate(date)}"
+    div.cnxb-history-user >
+      span.avatar[style="background-color:${avatar};"]
+      span.name[style="color:${avatar};"] > "${user}"
+    button.cnxb-history-diff[title="Diff with this revision" data-version="${date}" data-diff="true"]
+      i.material-icons > "compare_arrows"`;
 
 // ------------------------------------------------
 // ---- HISTORY CORE ----------------
 // ------------------------
 
 export default (function History () {
+
   // Create UI element.
   const element = template(scaffold);
 
@@ -34,7 +36,7 @@ export default (function History () {
   const detectAction = (event) => {
     const {version, diff} = event.target.dataset;
     if (!version) return;
-    element.dispatchEvent(emit(diff ? 'compare' : 'display', { revision: storage[version], label: version }));
+    element.dispatchEvent(emit(diff ? 'compare' : 'display', { revision: storage[version], label: 'Revision', date: humanizeDate(version) }));
   };
 
   // Add listeners.
@@ -42,8 +44,8 @@ export default (function History () {
 
   // ---- API METHODS ----------------
 
-  // Append history entries.
-  const fill = (revisions) => {
+  // Apply history entries.
+  const apply = (revisions) => {
     // Set empty placeholder if no data.
     if (!revisions || revisions.length === 0) {
       element.appendChild(createElement('div.cnxb-empty', 'No archive data for this module'));
@@ -51,18 +53,17 @@ export default (function History () {
     }
     // Create responses scaffold.
     const rlength = revisions.length;
-    const revsTemplate = revisions.reduce((result, revision, index) => {
+    const revsTemplate = revisions.reverse().reduce((result, revision, index) => {
       storage[revision.date] = revision;
       return result += revisionItem(rlength - index, revision.date, revision.user, revision.avatar);
     }, 'div');
 
-    // Add revisions.
-    sections.revisions = template(revsTemplate);
+
 
     // Append UI.
-    // element.appendChild(template(sections, scaffold));
+    element.appendChild(template(revsTemplate));
   };
 
   // Public API.
-  return { element, fill };
+  return { element, apply };
 }());

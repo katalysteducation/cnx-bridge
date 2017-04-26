@@ -58,8 +58,8 @@ export default (function Messenger () {
     setTimeout(() => {
       message.classList.remove('show');
       setTimeout(() => {
-        element.removeChild(message);
-        message = null;
+        // element.removeChild(message);
+        // message = null;
       }, 500)
     }, delay);
     return true;

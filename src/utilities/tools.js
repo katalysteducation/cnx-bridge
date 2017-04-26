@@ -150,6 +150,20 @@ export const date = (dateA, operator, dateB) => {
   return typeof dateA === 'string' ? compareDates(dateA, operator, dateB) : dateNow(dateA);
 };
 
+// List of Polish months in proper form.
+const miesiace = ['stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca', 'lipca', 'sierpnia', 'września', 'paździerika', 'lsitopada', 'grudnia']
+
+// List of months in English.
+const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+// Chagne date to more human-readable format.
+export const humanizeDate = (timestamp) => {
+  const [date, time] = timestamp.split(' ');
+  const reversed = date.split('-').reverse();
+  return reversed[0] + ' ' + months[parseInt(reversed[1])] + ' ' + reversed[2] + ' at ' + time.slice(0, 5);
+};
+
+
 
 // Allows to apply children nodes from 'current' before 'current'.
 export const getNodesOut = (current) => {

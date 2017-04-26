@@ -11,20 +11,6 @@ const scaffold = `
     @comment
 `;
 
-// const styleScaffold =`
-//   div.active.cnxb-style-editor__styles >
-//     button.cnxb-math-editor__accept[title="Bold text" data-action="bold"]
-//       i.material-icons > "format_bold"
-//     button.cnxb-math-editor__accept[title="Italic text" data-action="italic"]
-//       i.material-icons > "format_italic"
-//     button.cnxb-math-editor__accept[title="Term" data-action="term"]
-//       i.material-icons > "star_border"
-// `;
-
-
-// button.cnxb-math-editor__accept[title="Reference" data-action="ref"]
-//   i.material-icons > "swap_calls"
-
 const styleScaffold =`
   div.active.cnxb-style-editor__styles >
     button.cnxb-math-editor__accept[title="Bold text" data-action="bold"]
@@ -37,7 +23,6 @@ const styleScaffold =`
       i.material-icons > "forum"
     p.cnxb-style-editor__comment[contenteditable="true"]
 `;
-
 
 const comnentsScaffold = `
   div.cnxb-style-editor__comment >

@@ -10,6 +10,7 @@ connect.start();
 
 // Long-lived Connections.
 connect.pipe('menu', 'save').to('bridge');
+connect.pipe('menu', 'draft').to('bridge');
 connect.pipe('menu', 'toggle').to('bridge');
 connect.pipe('menu', 'reload').to('bridge');
 connect.pipe('menu', 'recover').to('bridge');
