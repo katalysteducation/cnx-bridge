@@ -21,8 +21,8 @@ const uiChannel = connect.open('bridge');
 uiChannel.listen('recover', bridge.recover);
 uiChannel.listen('toggle', bridge.toggle);
 uiChannel.listen('reload', bridge.reload);
-uiChannel.listen('draft', bridge.draft);
 uiChannel.listen('save', bridge.save);
+uiChannel.listen('draft', bridge.saveDraft);
 
 // ---- Send resore date to menu ----
 uiChannel.listen('rdate', () => {

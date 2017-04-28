@@ -1,5 +1,5 @@
 # CNX Bridge #
-> UI Enhancement Layer for CNX Legacy Editor with revision control 
+> UI Enhancement Layer for CNX Legacy Editor with revision control
 
 
 ## Instalation ##
@@ -14,8 +14,9 @@
 
 ## Load to Chrome ##
 
-1. Open Chrome.
-2. Go to `chrome://extensions/`.
-3. Select (check) `Developer mode`.
-4. Click: `Load extensions from location...`.
-5. With file explorator navigate to `build` catalog.
+1. Ektract `build` package 
+2. Open Chrome.
+3. Go to `chrome://extensions/`.
+4. Select (check) `Developer mode`.
+5. Click: `Load extensions from location...`.
+6. With file explorator navigate to `build` catalog.

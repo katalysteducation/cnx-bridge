@@ -68,14 +68,15 @@ const retry = (response) =>
   response.module_id ? response : client.get.module(response);
 
 // Load current CNXML version from Legacy #textarea.
-const readCurrentCnxml = (root) => () => {
+const readCurrentCnxml = (root) => () => new Promise((resolve, reject) => {
   const textarea = root.querySelector('#textarea');
   const metadata = getMetadata(textarea ? textarea.value : '');
   const content = getContent(textarea ? textarea.value : '');
   const classes = getClasses(textarea ? textarea.value : '');
+  resolve({ classes, content, metadata });
+})
 
-  return { classes, content, metadata }
-};
+
 
 
 // Convert markup & save data in legacy.
@@ -93,12 +94,6 @@ const saveInLegacy = (content, classes, root) => new Promise((resolve, reject) =
   resolve(true);
 });
 
-// Save local copy of current CNXML.
-// const saveLocalCopy = (module) => {
-//   const currentModule = module.revisions[module.revisions.length - 1];
-//   localStorage.setItem('cnx-bridge-backup', JSON.stringify({ date: date(true), module: currentModule }));
-//   return module;
-// };
 
 // Fetch current configuration and convert it to the promise.
 const getCurrentConfig = () => new Promise((resolve) =>
@@ -177,14 +172,16 @@ export default (function Storage() {
   const saveCnxml = (cnxml, classes) => saveInLegacy(cnxml, classes, document).catch(console.error);
 
   // Clear all revisions in module with given 'id'.
-  const clearModule = (id) => client.get.clear(id);
-
+  const clearModule = (id) => {
+    localStorage.removeItem('cnx-bridge-backup');
+    return client.get.clear(id || getModuleId());
+  };
 
   // Public API.
   return {
     // Getters.
     config,   // prop -> Promise: { user, avatar, token, pin, backend, status }
-    legacy,   // func -> Object:  { content, metadata, classes }
+    legacy,   // func -> Promise: { content, metadata, classes }
     history,  // prop -> Promise: { module.revisions }
     restore,  // func -> Object:  { module }
 

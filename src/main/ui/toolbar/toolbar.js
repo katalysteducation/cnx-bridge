@@ -1,5 +1,5 @@
-import { emit } from "../../../utilities/tools";
-import { template, createElement } from "../../../utilities/travrs";
+import {emit, humanizeDate} from "../../../utilities/tools";
+import {template, createElement} from "../../../utilities/travrs";
 
 require('./toolbar.scss');
 
@@ -19,27 +19,43 @@ const buttonScaffols = `
 
 export default (function Toolbar () {
 
+  // Toolbox API.
+  const API = {};
+
+  // UI References.
   const refs = {
     label: createElement('div.cnxb-toolbar-prompter', 'Legacy content'),
     buttons: template(buttonScaffols)
   };
 
+  // Create UI element.
   const element = template(refs, scaffold);
+  API.element = element;
 
+  // Detect click action.
   const clickHandle = (event) => {
     const {action} = event.target.dataset;
     action && element.dispatchEvent(emit('revision', { action }));
   };
 
-  const revision = (flag = true) => {
-    flag ? refs.buttons.classList.add('active') : refs.buttons.classList.remove('active')
+  // Set Toolbar label.
+  API.label = (title, ctv, cpv) => {
+    const part1 = `<span>${title}</span>`;
+    const part2 = ctv ? ` <span class="cnxb-label" title="Content version">${humanizeDate(ctv)}</span>` : '';
+    const part3 = cpv ? ` ⇌ <span class="cnxb-label" title="Compare verion">${humanizeDate(cpv)}</span>` : '';
+    refs.label.innerHTML = part1 + part2 + part3;
+    return API;
   };
 
-  const label = (html) => {
-    refs.label.innerHTML = html;
+  // Show/Hide Revision toolbar.
+  API.revision = (flag = true) => {
+    flag ? refs.buttons.classList.add('active') : refs.buttons.classList.remove('active');
+    return API;
   };
 
+  // Add listeners.
   element.addEventListener('click', clickHandle);
 
-  return { element, revision, label };
+  // Public API.
+  return API;
 }());

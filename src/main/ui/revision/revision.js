@@ -33,7 +33,7 @@ const revisionError =`
 const revisionWarning =`
   div.cnxb-revisions-warning
     div.header > "Unsynchronized version"
-    div.info > "This revision is still unsynchronized. You need to save changes in order to finish syncing process."
+    div.info > "This revision is still unsynchronized. You need to save module in order to finish syncing process."
 `;
 
 
@@ -44,7 +44,7 @@ const revisionWarning =`
 export default (function Revision () {
 
   // UI dynamic references.
-  const refs = { message : createElement('div.cnxb-revisions-message')};
+  const refs = { message : createElement('div.cnxb-revisions-message') };
 
   // Create UI element.
   const element = template(refs, scaffold);
@@ -67,13 +67,13 @@ export default (function Revision () {
     // Handle resolve issue.
     if (action && ~commands.indexOf(action)) {
 
-      // Notify Bridge to replace Content.
+      // Replace Content.
       if (action === 'resolve')
         element.dispatchEvent(emit('replace', { revision: storage.silentRevision, label: 'Unsynchronized revision'}));
 
-      // Replace content with most recent version in BAD.
+      // Replace Content with last version stored in BAD.
       else if (action === 'restore')
-        element.dispatchEvent(emit('display', { revision: storage.currentVersion, label: 'Restored revision from', date: humanizeDate(storage.currentVersion.date) }));
+        element.dispatchEvent(emit('display', { revision: storage.currentVersion, label: 'Restored revision', date: storage.currentVersion.date }));
 
       // Display Warning message in any case.
       refs.message.replaceChild(template(revisionWarning), refs.message.firstElementChild);
@@ -81,7 +81,7 @@ export default (function Revision () {
 
     // Compare current version with previous revision.
     else if (action === 'diff')
-      element.dispatchEvent(emit('replace', { revision: storage.latestChanges, label: 'Latest changes', date: humanizeDate(storage.latestDate) }));
+      element.dispatchEvent(emit('replace', { revision: storage.latestChanges, label: 'Latest changes', date: storage.latestDate }));
   };
 
 
@@ -102,10 +102,8 @@ export default (function Revision () {
     if (storage.currentVersion) {
       storage.silentRevision = comparator(storage.currentVersion.content, true);
       // Detectc conflicts.
-      if (!!storage.silentRevision.querySelector('del, ins')) {
-        refs.message.appendChild(template(revisionError));
-        return storage.currentVersion;
-      }
+      if (!!storage.silentRevision.querySelector('del, ins'))
+        return refs.message.appendChild(template(revisionError));        
     }
 
     // Message for no-revisions.

@@ -6,6 +6,7 @@ require('./outliner.scss');
 const scaffold = `
   div.cnxb-outliner >
     h4 > "Outline"
+    div.cnxb-empty > "Outliner is still in develop"
 `;
 
 

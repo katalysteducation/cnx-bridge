@@ -41,7 +41,7 @@
     {
       "matches": [
         "http://localhost/*",
-        "https://legacy.cnx.org/*"
+        "https://legacy.cnx.org/*/module*"
       ],
       "js": [
         "app/content/content.js"

@@ -5,7 +5,7 @@ import {copyAttrs, uid} from "../../utilities/tools";
 // ---- Helpers ----------------
 
 const isInline = (node) => inliners.some(selector => node.matches && node.matches(selector));
-const isTextNode = (node) => node.nodeName === '#text' && node.data.trim().length > 0;
+const isTextNode = (node) => node.nodeName === '#text';
 const isOnlyChild = (node) => node.parentNode.children.length === 1;
 // Detect <terms> displayes as block elements
 const isBlockTerm = (term) =>
@@ -66,6 +66,7 @@ const convert = (node, parent, modifier) => {
           editable = newEditable();
         }
         // Clone deep element.
+        // console.log(current); // Debug.
         const clone = cloneElement(current);
         parent.appendChild(clone);
         // Go deeper.

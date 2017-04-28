@@ -1,4 +1,4 @@
-import {emit, humanizeDate} from "../../../utilities/tools";
+import {emit, humanizeDate, Memo} from "../../../utilities/tools";
 import {template, createElement} from "../../../utilities/travrs";
 require('./history.scss');
 
@@ -32,11 +32,20 @@ export default (function History () {
   // Section scaffold references.
   const sections = {};
 
+  // Active element toggler.
+  const active = new Memo((current, active) => {
+    if (!current.matches('.cnxb-history-item')) return active;
+    if (active) active.classList.remove('active');
+    current.classList.add('active');
+    return current;
+  });
+
   // Run user action.
   const detectAction = (event) => {
     const {version, diff} = event.target.dataset;
+    active(event.target);
     if (!version) return;
-    element.dispatchEvent(emit(diff ? 'compare' : 'display', { revision: storage[version], label: 'Revision', date: humanizeDate(version) }));
+    element.dispatchEvent(emit(diff ? 'compare' : 'display', { revision: storage[version], label: 'Revision', date: version }));
   };
 
   // Add listeners.
@@ -45,7 +54,7 @@ export default (function History () {
   // ---- API METHODS ----------------
 
   // Apply history entries.
-  const apply = (revisions) => {
+  const apply = (revisions, insync) => {
     // Set empty placeholder if no data.
     if (!revisions || revisions.length === 0) {
       element.appendChild(createElement('div.cnxb-empty', 'No archive data for this module'));
@@ -58,12 +67,16 @@ export default (function History () {
       return result += revisionItem(rlength - index, revision.date, revision.user, revision.avatar);
     }, 'div');
 
-
-
     // Append UI.
     element.appendChild(template(revsTemplate));
+
+    // Return newest element.
+    return revisions.slice(0,1)[0];
   };
 
+  // Return revision object by date.
+  const revision = (date) => storage[date];
+
   // Public API.
-  return { element, apply };
+  return { element, apply, revision };
 }());

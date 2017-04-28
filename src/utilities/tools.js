@@ -160,7 +160,7 @@ const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
 export const humanizeDate = (timestamp) => {
   const [date, time] = timestamp.split(' ');
   const reversed = date.split('-').reverse();
-  return reversed[0] + ' ' + months[parseInt(reversed[1])] + ' ' + reversed[2] + ' at ' + time.slice(0, 5);
+  return reversed[0] + ' ' + months[parseInt(reversed[1])] + ' ' + reversed[2] + ' at ' + time;
 };
 
 
@@ -273,9 +273,9 @@ export const moveNodes = (from, to) => {
 export const Memo = (modifier, previous) => {
   if (typeof modifier !== 'function') throw "Modifier need to be a function.";
   return (current) => {
-    const result = modifier(current, previous);
-    previous = current;
-    return result;
+    //NOTE: To memoize previous value you need to return it from the 'modifier'.
+    previous = modifier(current, previous);
+    return previous;
   }
 };
 

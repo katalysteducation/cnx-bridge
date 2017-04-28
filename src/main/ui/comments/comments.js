@@ -26,8 +26,14 @@ export default (function Comments () {
   // Active elements' toggler.
   const active = new Memo((current, active) => {
     if (active) active.classList.remove('active');
-    active = current;
-    active.classList.add('active');
+    if (active !== current) {
+      active = current;
+      active.classList.add('active');
+    }
+    else {
+      active.classList.remove('active');
+      active = undefined;
+    }
     return active;
   });
 
@@ -111,25 +117,28 @@ export default (function Comments () {
   const pull = () => Array.from(commentsList.values()).map(comment => comment.model);
 
   // Select Coment by its id, and set it active.
-  const select = (id) =>
-    active(element.querySelector(`div[data-comment-id="${id}"]`));
+  const select = (id) => {
+    const comment = element.querySelector(`div[data-comment-id="${id}"]`);
+    active(comment);
+    return comment;
+  };
 
   // Add comment from list to the display.
   const fill = (list = []) => {
     const final = list.reduce((result, comment) => {
       if (!commentsList.has(comment.id)) result.set(comment.id, { model: comment, ref: append(commentEl(comment)) });
       return result;
-    }, commentsList);    
+    }, commentsList);
     if (list.length === 0) element.appendChild(empty);
     return final;
   }
 
-  // Remove comments presents on the 'list'.
+  // Remove comments present on the 'list'.
   const remove = (list) => {
     list.forEach(id => {
       const comment = commentsList.get(id);
       if (comment) {
-        comment.parentNode.removeChild(comment.ref);
+        comment.ref.parentNode.removeChild(comment.ref);
         commentsList.delete(id);
       }
     });
@@ -142,6 +151,19 @@ export default (function Comments () {
     return fill(list);
   };
 
+  // Create searching function to detect which Comments from 'contentElement' are available in last revisoin.
+  const find = (contentElement) => (revisoins) => {
+    if (!Array.isArray(revisoins)) revisoins = [revisoins];
+    // Get last revision.
+    const lastRevision = revisoins.slice(0,1)[0];
+    // Exit if no revision.
+    if (!lastRevision) return;
+    // Detect comments in content.
+    const ids = Array.from(contentElement.querySelectorAll('quote[type=comment]')).map((comment) => comment.id);
+    // Repalce ony existing comments.
+    replace(lastRevision.comments.filter((comment) => ~ids.indexOf(comment.id)));
+  };
+
   // Pubic API.
-  return { element, user, add, pull, fill, remove, replace, select };
+  return { element, user, add, pull, fill, find, remove, replace, select };
 }());

@@ -8,14 +8,15 @@ $main: #3174f1;
   & > h4 {
     color: #797979;
     margin: 0px;
-    font-size: 18px;
-    font-family: Roboto;
-    font-weight: 400;
     padding: 10px;
+    font-size: 18px;
+    font-weight: 400;
+    font-family: 'Roboto';
     border-bottom: 1px solid #e7e7ea;
   }
 
   &-item {
+    color: #666;
     display: block;
     cursor: pointer;
     background: none;
@@ -23,7 +24,7 @@ $main: #3174f1;
     padding: 11px 10px 10px 10px;
     border-left: 3px solid #EDEDED;
     border-bottom: 1px solid $separator;
-    transition: border .5s, background .5s ease;
+    transition: border .5s, background .5s ease, color .5s ease, font-weight .5s ease;
 
     &:before {
       content: ' ';
@@ -38,13 +39,22 @@ $main: #3174f1;
 
     &:hover {
       background: #EDEDED;
+    }
+
+    &.active {
+      background: #EDEDED;
       border-left: 3px solid $main;
+      .cnxb-history-header {
+        color: #000;
+        font-weight: 500;
+      }
     }
   }
 
   &-header {
+    color: #333;
     font-size: 16px;
-    font-weight: 500;
+    font-weight: 400;
     font-family: 'Roboto';
   }
 
@@ -62,7 +72,7 @@ $main: #3174f1;
 
     & > span.name {
       color: #666;
-      font-weight: 200;
+      font-weight: 300;
     }
   }
 
@@ -95,7 +105,8 @@ $main: #3174f1;
       position: absolute;
     }
 
-    &:hover {
+    &:hover,
+    &.active {
       color: $main;
       background: #ddd;
     }
