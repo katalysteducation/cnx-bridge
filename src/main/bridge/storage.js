@@ -76,11 +76,8 @@ const readCurrentCnxml = (root) => () => new Promise((resolve, reject) => {
   resolve({ classes, content, metadata });
 })
 
-
-
-
 // Convert markup & save data in legacy.
-const saveInLegacy = (content, classes, root) => new Promise((resolve, reject) => {
+const saveInLegacy = (content, classes = '', root) => new Promise((resolve, reject) => {
   const textarea = root.querySelector('#textarea');
   const button = root.querySelector('#edit_form > input[type=submit]');
   // Fail if no UI to hook up.

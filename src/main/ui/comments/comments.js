@@ -119,6 +119,7 @@ export default (function Comments () {
   // Select Coment by its id, and set it active.
   const select = (id) => {
     const comment = element.querySelector(`div[data-comment-id="${id}"]`);
+    if (!comment) return;
     active(comment);
     return comment;
   };

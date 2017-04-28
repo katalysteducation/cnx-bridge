@@ -67,6 +67,7 @@ export default function StyleEditor (pubsub) {
     else {
       refs.styles.classList.remove('active');
       refs.comment.classList.add('active');
+      crefs.input.focus();
     }
   };
 

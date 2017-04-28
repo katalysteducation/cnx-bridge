@@ -102,7 +102,7 @@ export default function Select (root, editors) {
     if (~selectionText.slice(-1).search(/\s/)) range.setEnd(range.endContainer, range.endOffset - 1);
 
     // If selection is on node with 'data-select' attribute. Select whole node.
-    if (event.target.dataset.select) range.selectNode(event.target);
+    if (event.target.dataset && event.target.dataset.select) range.selectNode(event.target);
 
     // Get rectangle around selection.
     const coords = range.getBoundingClientRect();

@@ -157,7 +157,8 @@ export default function Bridge (root) {
   // Compare 'newVersion' of DOM with the 'oldVersion'.
   // NOTE: HOF function without flag 'silet' set to TRUE will override the newVersion tree with the copmaration result.
   const compare = (newVersion) => (oldVersion, silent = false) => {
-    const content = silent ? newVersion.cloneNode(true) : newVersion;
+    const root = newVersion.querySelector('div[data-type=content]');
+    const content = silent ? root.cloneNode(true) : root;
     const diffA = toHTML(oldVersion).querySelector('div[data-type=content]');
     const diffB = createElement('div', content.innerHTML);
     // Clear content.
@@ -179,15 +180,35 @@ export default function Bridge (root) {
   // Switch Outliner Panels wthen Toolbox btn clicked.
   const switchOutlinerPanels = ({detail}) => outlinerPanels.select(detail.index);
 
+  // Scroll Content to show selected Section.
+  const scrollContent = ({detail}) => {
+    let section;
+    if (detail.id && (section = document.getElementById(detail.id))) {
+      contentPanels.view.scrollTop = section.offsetTop - 10;
+      pscroll.update(contentPanels.view);
+    }
+  };
+
+  // Fires when content was changed.
+  const onContentChanged = (event) => Outliner.update(Content.element);
+
+  // Fires when content was changed.
+  const onElementUpdate = ({detail}) => Outliner.updateElement(detail.ref);
+
   // Detect clicked element.
   const detectElement = (event) => {
     // Detect click on Comment node;
     if (event.target.matches('quote[type=comment]')) {
       const comment = Comments.select(event.target.id);
       if (comment) {
+        // Select comment in the Content and the Comments panel.
         activeComment(event.target);
         outlinerPanels.view.scrollTop = comment.offsetTop - 10;
         pscroll.update(outlinerPanels.view);
+      } else {
+        // Notify user & unwrap comment.
+        Messenger.error('Selected comment does not exist in the archive. It will be removed fro the content');
+        event.target.outerHTML = event.target.innerHTML;
       }
     }
   };
@@ -195,7 +216,7 @@ export default function Bridge (root) {
 
   // ---- COMMENTS HANDLES -----------------
 
-  // Toggle .active class on selected comment.
+  // Toggle '.active' class on selected comment.
   const activeComment = new Memo((current, active) => {
     if (active) active.classList.remove('active');
     if (active !== current) {
@@ -287,17 +308,17 @@ export default function Bridge (root) {
   // Replcae Content with provided revision (DOM Tree).
   const replaceContent = ({detail}) => {
     const {revision, label, date} = detail;
-    const revReference = History.revision(date);
+    const revReference = History.revision(date) || {comments:[]};
 
     // Continue function.
     const continueReplacing = (accepted) => {
       if (!accepted) return;
       // Set Toolbar label & hide revisoin buttons.
       Toolbar.label(label, date).revision(true);
-      // show comments from currently display revision.
-      revReference && Comments.replace(revReference.comments);
+      // Merge comments from new and old version.
+      mergeComments(Comments.pull(), revReference.comments);
       // Replace content.
-      Content.element.innerHTML = revision.innerHTML;
+      Content.set(revision);
       // Re-render Math.
       tools.proxy.dataset.reRender = true;
     };
@@ -362,7 +383,10 @@ export default function Bridge (root) {
   // Append new content.
   const appendContent = ({content}) => {
     // Create content editable structure. // FIXME: Force shalow nesting!
-    Content.element.innerHTML = toHTML(content).firstElementChild.innerHTML;
+    // Content.element.innerHTML = toHTML(content).firstElementChild.innerHTML;
+    Content.set(toHTML(content).firstElementChild);
+    // Update outliner.
+    Outliner.update(Content.element);
     // Re-render Math.
     tools.proxy.dataset.reRender = true;
   };
@@ -379,6 +403,8 @@ export default function Bridge (root) {
     // Content listeners.
     Content.element.addEventListener('click', detectElement);
     Content.element.addEventListener('mouseup', selectEditable);
+    Content.element.addEventListener('changed', onContentChanged);
+    Content.element.addEventListener('update.element', onElementUpdate);
 
     // Toolbox listeners.
     Toolbox.element.addEventListener('switch-tab', switchOutlinerPanels);
@@ -393,6 +419,9 @@ export default function Bridge (root) {
     // Comments listeners.
     Comments.element.addEventListener('remove', removeComment);
     Comments.element.addEventListener('scroll.content', scrollCommentInContent);
+
+    // Outliner listeners.
+    Outliner.element.addEventListener('scroll.content', scrollContent);
 
     // History listeners.
     History.element.addEventListener('display', displayRevision);
@@ -436,9 +465,9 @@ export default function Bridge (root) {
     // Convert current content to CNXML.
     const cnxmlContent = toCNXML(Content.element);
     // Save data to the BAD & the Legacy.
-    Storage.saveRevision(cnxmlContent, Comments.pull()).then(success => Storage.saveCnxml(cnxmlContent, Storage.legacy().classes));
+    Storage.saveRevision(cnxmlContent, Comments.pull()).then(Storage.legacy).then(({classes}) => Storage.saveCnxml(cnxmlContent, classes));
     // Notify user.
-    Messenger.info('Saving in progress. Wait for Legacy to reload...');
+    Messenger.success('Saving in progress. Wait for Legacy to reload...');
   };
 
   // Save current document draft.

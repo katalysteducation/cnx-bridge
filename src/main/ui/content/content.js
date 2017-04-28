@@ -1,4 +1,4 @@
-import {emit, arrayToObject} from "../../../utilities/tools";
+import {emit} from "../../../utilities/tools";
 import {template, createElement} from "../../../utilities/travrs";
 
 
@@ -8,14 +8,24 @@ import {template, createElement} from "../../../utilities/travrs";
 
 export default (function Content () {
   // Create UI element.
-  const element = createElement('div.content');
+  const element = createElement('div');
+
+  const updateElement = (event) => {
+    const root = event.target.closest('div[data-type=content] > div[data-type]');
+    root && element.dispatchEvent(emit('update.element', { ref: root }));
+  }
+
+  element.addEventListener('blur', updateElement, true);
 
   // Replace old content with new one.
-  const append = (content) => {
+  const set = (content) => {
     content.classList.add('content');
-    element.parentNode.replaceChild(content, element);
+    if (!element.firstElementChild) element.appendChild(content);
+    else element.replaceChild(content, element.firstElementChild);
+    // Dispatch update event.
+    element.dispatchEvent(emit('changed'));
   };
 
   // Public API.
-  return { element, append };
+  return { element, set };
 }());
