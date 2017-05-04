@@ -46,9 +46,9 @@ export default function MathEditor (proxyInput) {
   element.addEventListener('click', updateEquation);
 
   // API Method.
-  const select = (element, range) => {
-    equation = element;
-  };
+  const select = (element, range) => equation = element;
 
-  return { element, select };
+  const dismiss = () => pubsub.publish('editor.dismiss');
+
+  return { element, select, dismiss };
 };

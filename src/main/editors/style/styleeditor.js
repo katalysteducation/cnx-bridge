@@ -138,5 +138,10 @@ export default function StyleEditor (pubsub) {
     element.querySelector('#cnxb-cmb').style.display = 'none';
   };
 
-  return { element, select, disableComments };
+  const dismiss = () => {
+    if (state.action === 'comment' && crefs.input.textContent.length === 0) state = actions[state.action](state, state.action);
+    pubsub.publish('editor.dismiss');
+  }
+
+  return { element, select, disableComments, dismiss };
 };

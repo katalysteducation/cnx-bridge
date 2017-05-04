@@ -25,26 +25,26 @@ const findEditor = (editors) => {
   }
 };
 
+// Stop default event behaviour.
+const blockDefault = (event) => {
+  event.stopPropagation();
+  event.preventDefault();
+};
+
 // Create inlineToolbox elelemt and apply new editor if porvided
 // and set its position.
 const inlineToolbox = (root) => {
   const it = document.createElement('div');
   it.className = 'cnxb-inline-toolbox';
+  // Add toolbox wrapper.
   root.appendChild(it);
-
   // Block actions inside editor frame.
-  it.addEventListener('mouseup', (event) => {
-    event.stopPropagation();
-    event.preventDefault();
-  })
-
+  it.addEventListener('mouseup', blockDefault);
+  // Return call function.
   return (editor, coords) => {
 
-    // Hide InlineToolbox.
-    if (!editor || !editor.element) {
-      it.classList.remove('active');
-      return;
-    }
+    // Hide InlineToolbox & quit.
+    if (!editor || !editor.element) return it.classList.remove('active');
 
     // Clean container & append new editor if required.
     if (it.firstChild && it.firstChild !== editor.element) {
@@ -90,8 +90,11 @@ export default function Select (root, editors) {
   const selectEditor = findEditor(editors);
   const runEditor = inlineToolbox(root);
 
+  // Reference to the Select toolbox wrapper.
+  const element = root.querySelector('.cnxb-inline-toolbox');
+
   // Select proper editor and set it's coordinates.
-  const contentSelected = (event) => {
+  const onContentSelected = (event) => {
 
     // Get selection.
     const selection = window.getSelection();
@@ -110,13 +113,19 @@ export default function Select (root, editors) {
     const editor = selectEditor(content);
     const display = runEditor(editor, coords);
 
-    // Execute.
-    display && display.select(content, range, event.target.dataset.select ? event.target : undefined);
+    // Call the editor if exist. -> Return promise if you need to do some work after editor is open.
+    return new Promise((resolve) => {
+      if (!display) return;
+      // Call 'select' method that is REQUIRED for the inlineEditors. -> display.select(content, range, elementReference);
+      display.select(content, range, event.target.dataset.select ? event.target : undefined);
+      // Resolve promise with internal data.
+      resolve({ editor, content, range, coords });
+    });
   };
 
   // Hide InlineToolbox.
   const dismiss = () => runEditor();
 
   // Public API.
-  return { contentSelected, dismiss };
+  return { onContentSelected, dismiss, element };
 };

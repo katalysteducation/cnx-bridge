@@ -105,7 +105,7 @@ export default function Bridge (root) {
   const setCurrentDraft = () => {
     Toolbar.label('Current Draft');
     state.displayRevisionDate = 'Current Draft';
-    Storage.saveDraft({ content: toCNXML(Content.element), comments: Comments.pull() });
+    Storage.saveDraft({ content: toCNXML(Content.pull()), comments: Comments.pull() });
   };
 
 
@@ -127,7 +127,7 @@ export default function Bridge (root) {
     // Alt + x -> Show current CNXML.
     if (event.altKey && event.key === 'x') {
       mergeAssistant('reject');
-      console.log(toCNXML(Content.element));
+      console.log(toCNXML(Content.pull()));
     }
 
     // Alt + m -> Show test messahe
@@ -143,32 +143,51 @@ export default function Bridge (root) {
   // to not interfere with reorder functionality.
   const select = new Select(contentPanels.view, state.editors);
 
+  // FIXME:
+  // const onInlineEditorOpen = ({editor, coords}) => {
+  //
+  //   const detectScroll = (event) => {
+  //     editor.dismiss();
+  //     contentPanels.view.removeEventListener('scroll', detectScroll);
+  //   };
+  //
+  //   contentPanels.view.addEventListener('scroll', detectScroll);
+  //
+  //   if (window.innerHeight - coords.bottom < 120) {
+  //     contentPanels.view.scrollTop = contentPanels.view.scrollTop + 120;
+  //     pscroll.update(contentPanels.view);
+  //     select.element.style.top = coords.bottom - 100 + 'px';
+  //   }
+  //
+  // };
+
   // Filter what can be selected by Inine Edutors.
   const selectEditable = (event) => {
     const editable = event.target.closest('p[data-target=editable][contenteditable=true]');
     // Allow for selecting: Ediitable containers, Diff markesr & Math wrappers.
-    if ((editable) || event.target.matches('del, ins, span[data-select=math]')) select.contentSelected(event);
+    if ((editable) || event.target.matches('del, ins, span[data-select=math]')) select.onContentSelected(event)//.then(onInlineEditorOpen);
     else select.dismiss();
   };
 
 
+
   // ---- COMPARATION HANDLES -------------
 
-  // Compare 'newVersion' of DOM with the 'oldVersion'.
-  // NOTE: HOF function without flag 'silet' set to TRUE will override the newVersion tree with the copmaration result.
-  const compare = (newVersion) => (oldVersion, silent = false) => {
-    const root = newVersion.querySelector('div[data-type=content]');
-    const content = silent ? root.cloneNode(true) : root;
+  // Compare 'contentRevision' of DOM with the 'oldVersion'.
+  // NOTE: HOF function without flag 'silet' set to TRUE will override the contentRevision tree with the copmaration result.
+  const compare = (contentRevision) => (oldVersion, silent = false) => {
+    const content = contentRevision.querySelector('div[data-type=content]');
+    const clone = silent ? content.cloneNode(true) : content;
     const diffA = toHTML(oldVersion).querySelector('div[data-type=content]');
-    const diffB = createElement('div', content.innerHTML);
-    // Clear content.
-    content.innerHTML = '';
+    const diffB = createElement('div', clone.innerHTML);
+    // Clear clone's content.
+    clone.innerHTML = '';
     // Append diffs.
-    Array.from(diff(diffA, diffB).children).forEach(element => content.appendChild(element));
+    Array.from(diff(diffA, diffB).children).forEach(element => clone.appendChild(element));
     // Merge siblings & get only diffs children.
-    mergeSameSiblings(Array.from(content.querySelectorAll('del, ins')));
+    mergeSameSiblings(Array.from(clone.querySelectorAll('del, ins')));
     // Diff element reference.
-    return content;
+    return clone;
   };
 
   // Compare 'Content.element' tree with 'compareWithContent(input)' tree.
@@ -183,14 +202,14 @@ export default function Bridge (root) {
   // Scroll Content to show selected Section.
   const scrollContent = ({detail}) => {
     let section;
-    if (detail.id && (section = document.getElementById(detail.id))) {
+    if (detail.id && (section = document.querySelector(`div#${detail.id}[data-type]`))) {
       contentPanels.view.scrollTop = section.offsetTop - 10;
       pscroll.update(contentPanels.view);
     }
   };
 
   // Fires when content was changed.
-  const onContentChanged = (event) => Outliner.update(Content.element);
+  const onContentChanged = (event) => Outliner.update(Content.pull());
 
   // Fires when content was changed.
   const onElementUpdate = ({detail}) => Outliner.updateElement(detail.ref);
@@ -382,11 +401,10 @@ export default function Bridge (root) {
 
   // Append new content.
   const appendContent = ({content}) => {
-    // Create content editable structure. // FIXME: Force shalow nesting!
-    // Content.element.innerHTML = toHTML(content).firstElementChild.innerHTML;
+    // Create content editable structure.
     Content.set(toHTML(content).firstElementChild);
     // Update outliner.
-    Outliner.update(Content.element);
+    Outliner.update(Content.pull());
     // Re-render Math.
     tools.proxy.dataset.reRender = true;
   };
@@ -463,7 +481,7 @@ export default function Bridge (root) {
     // Check for diffs markers in CNXML.
     if (!isResolved()) return Messenger.error('You neet to resolve all conflict in order to save a module');
     // Convert current content to CNXML.
-    const cnxmlContent = toCNXML(Content.element);
+    const cnxmlContent = toCNXML(Content.pull());
     // Save data to the BAD & the Legacy.
     Storage.saveRevision(cnxmlContent, Comments.pull()).then(Storage.legacy).then(({classes}) => Storage.saveCnxml(cnxmlContent, classes));
     // Notify user.
@@ -480,7 +498,8 @@ export default function Bridge (root) {
       Messenger.success('Current Draft was saved');
     };
     // Check for diffs markers in CNXML.
-    Messenger.warn('You have some unresolved conflicts. If you do not resolve them they will be discarded', continueSaving, 'Continue', 'Resolve' );
+    if (!isResolved()) Messenger.warn('You have some unresolved conflicts. If you do not resolve them they will be discarded', continueSaving, 'Continue', 'Resolve' );
+    else continueSaving(true);
   };
 
   // Reload data in Bridge's workspace.

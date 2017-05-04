@@ -36,7 +36,7 @@ export default (function Outliner () {
   // Update outliner UI.
   const update = (contentElement) => {
     refs.list.innerHTML = "";
-    Array.from(contentElement.firstElementChild.children).forEach((child) => {
+    Array.from(contentElement.children).forEach((child) => {
       const text = child.textContent.slice(0, 40);
       refs.list.appendChild(createElement(`div.cnxb-outliner-item[data-link="${child.id}"]`, text));
     });

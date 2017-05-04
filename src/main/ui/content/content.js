@@ -26,6 +26,9 @@ export default (function Content () {
     element.dispatchEvent(emit('changed'));
   };
 
+  // Get Content pure content
+  const pull = () => element.firstElementChild;
+
   // Public API.
-  return { element, set };
+  return { element, set, pull };
 }());

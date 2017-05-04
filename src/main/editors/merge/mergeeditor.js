@@ -30,7 +30,7 @@ export default function MergeEditor (pubsub) {
     const commentsIds = getCommentIds(_target);
     // Run selected action.
     action === 'accept' ? accepChange(_target) : rejectChange(_target);
-    // Dismiss popup.    
+    // Dismiss popup.
     pubsub.publish('editor.dismiss').publish('editor.unwrap', { ids : commentsIds });
   };
 
@@ -40,10 +40,10 @@ export default function MergeEditor (pubsub) {
   element.addEventListener('click', detectAction);
 
   // API Method.
-  const select = (element, range, target) => {
-    _target = target;
-  };
+  const select = (element, range, target) => _target = target;
+
+  const dismiss = () => pubsub.publish('editor.dismiss');
 
   // Publi API.
-  return { element, select };
+  return { element, select, dismiss };
 };
