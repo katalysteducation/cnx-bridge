@@ -98,7 +98,7 @@ $bg: #f7f7f7;
       border-bottom: 2px solid transparent;
       transition: color .3s, border .3s ease, background .3s ease;
 
-      &.accept{
+      &.accept-btn {
         &:hover {
           border-bottom: 2px solid $success;
         }
@@ -108,7 +108,7 @@ $bg: #f7f7f7;
         }
       }
 
-      &.warning{
+      &.warning-btn {
         &:hover {
           border-bottom: 2px solid $warn;
         }
@@ -118,7 +118,7 @@ $bg: #f7f7f7;
         }
       }
 
-      &.error {
+      &.error-btn {
         &:hover {
           border-bottom: 2px solid $error;
         }

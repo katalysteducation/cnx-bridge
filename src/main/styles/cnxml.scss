@@ -13,6 +13,17 @@ emphasis[effect="bold"] {
   font-weight: bold;
 }
 
+// ---- Images ----------------
+
+div[data-type=figure] > div[data-type=title] p {
+  text-align: center;
+}
+
+p[data-target=editable] img {
+  display: block;
+  margin: 0 auto;
+}
+
 // ---- References --------------
 
 ref {
@@ -44,6 +55,12 @@ quote[type=comment] {
 
 // ---- Titles ----------------
 
+div[data-type=section] > div[data-type=title] > p {
+  font-size: 18px;
+  font-weight: bold;
+  color: #2a2a2a !important;
+}
+
 div[data-type=title] > p {
   font-size: 16px;
   font-weight: bold;
@@ -51,6 +68,10 @@ div[data-type=title] > p {
 }
 
 // ---- Lists ----------------
+
+div[data-type=list] {
+  padding-left: 10px;
+}
 
 div[data-type=item] {
   display:list-item;
@@ -63,6 +84,7 @@ div[data-type=item] {
 div[data-type=table] {
   display: table;
   margin: 0 auto;
+  width: 100%;
 }
 
 div[data-type=thead] {
@@ -85,6 +107,7 @@ div[data-type=row] {
 
 div[data-type=entry] {
   display: table-cell;
+  padding: 0 5px;
   & > p {
     margin: 5px 0 !important;
   }

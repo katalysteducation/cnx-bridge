@@ -37,7 +37,7 @@ export default (function Outliner () {
   const update = (contentElement) => {
     refs.list.innerHTML = "";
     Array.from(contentElement.children).forEach((child) => {
-      const text = child.textContent.slice(0, 40);
+      const text = child.querySelector('p[data-target=editable]').textContent.slice(0, 40);
       refs.list.appendChild(createElement(`div.cnxb-outliner-item[data-link="${child.id}"]`, text));
     });
   };
@@ -46,7 +46,7 @@ export default (function Outliner () {
   const updateElement = (section) => {
     const item = element.querySelector(`div.cnxb-outliner-item[data-link="${section.id}"]`);
     if (!item) return;
-    item.innerHTML = section.textContent.slice(0, 40);
+    item.innerHTML = section.querySelector('p[data-target=editable]').textContent.slice(0, 40);
   };
 
   // Public API.

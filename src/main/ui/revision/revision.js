@@ -24,9 +24,9 @@ const revisionError =`
       div.header > "Unsynchronized version"
       div.info > "Current content version in Legacy is different than the latest revision in Bridge's Archive. You need to resolve some conflicts in order to continue."
     div.cnxb-revisions-buttons
-      button.accept[data-action="resolve"] > "Resolve"
-      button.warning[data-action="cancel"] > "Cancel"
-      button.error[data-action="restore"] > "Restore"
+      button.accept-btn[data-action="resolve"] > "Resolve"
+      button.warning-btn[data-action="cancel"] > "Cancel"
+      button.error-btn[data-action="restore"] > "Restore"
 `;
 
 // Add Revision Warning.
@@ -103,7 +103,7 @@ export default (function Revision () {
       storage.silentRevision = comparator(storage.currentVersion.content, true);
       // Detectc conflicts.
       if (!!storage.silentRevision.querySelector('del, ins'))
-        return refs.message.appendChild(template(revisionError));        
+        return refs.message.appendChild(template(revisionError));
     }
 
     // Message for no-revisions.
