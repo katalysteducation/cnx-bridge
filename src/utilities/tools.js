@@ -165,7 +165,7 @@ export const humanizeDate = (timestamp) => {
 
 
 
-// Allows to apply children nodes from 'current' before 'current'.
+// Applies children nodes from 'current' before 'current'.
 export const getNodesOut = (current) => {
   const parent = current.parentNode;
   let next, node = current.firstChild;

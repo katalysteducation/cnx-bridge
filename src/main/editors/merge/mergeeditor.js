@@ -1,5 +1,5 @@
 import { getNodesOut } from "../../../utilities/tools";
-import { accepChange, rejectChange } from "../../diff/merge";
+import { acceptChange, rejectChange } from "../../diff/merge";
 import { template, createElement } from "../../../utilities/travrs";
 require('./mergeeditor.scss');
 
@@ -29,7 +29,7 @@ export default function MergeEditor (pubsub) {
     // Detect comments in diffs.
     const commentsIds = getCommentIds(_target);
     // Run selected action.
-    action === 'accept' ? accepChange(_target) : rejectChange(_target);
+    action === 'accept' ? acceptChange(_target) : rejectChange(_target);
     // Dismiss popup.
     pubsub.publish('editor.dismiss').publish('editor.unwrap', { ids : commentsIds });
   };

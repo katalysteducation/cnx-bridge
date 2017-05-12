@@ -1,4 +1,4 @@
-import { getNodesOut, elFromString } from "../../utilities/tools";
+import { getNodesOut } from "../../utilities/tools";
 
 // ---- MERGE TOOLS ----------------
 
@@ -23,7 +23,7 @@ export const mergeSameSiblings = (list) =>
 const isOnlyChild = (node) => !node.nextElementSibling && !node.prevElementSibling;
 
 
-const isNodeToRemove = (node) => node.childNodes.length === 0 || node.tagName === 'DEL' || node.tagName === 'INS'
+const isNodeToRemove = (node) => node.childNodes.length === 0 || node.tagName === 'DEL' || node.tagName === 'INS';
 
 // Remove tree branch.
 const removeFromTree = (node) => {
@@ -45,7 +45,7 @@ export const rejectChange = (node) => {
 };
 
 // Accept changes in node.
-export const accepChange = (node) => {
+export const acceptChange = (node) => {
   if (node.tagName === "DEL")
     isNodeToRemove(node) ? removeFromTree(node) : node.parentNode.removeChild(node);
   else if (node.tagName === "INS") {
@@ -61,5 +61,5 @@ export const rejectAllChanges = (diffs) => {
 
 // Accept all changes in diffs array.
 export const acceptAllChanges = (diffs) => {
-  diffs && diffs.forEach(diff => diff.parentNode && accepChange(diff));
+  diffs && diffs.forEach(diff => diff.parentNode && acceptChange(diff));
 }
