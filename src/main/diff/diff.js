@@ -1,4 +1,5 @@
-import {diffHTML} from "./jsdiff";
+import {unique} from "shorthash";
+import diff_match_patch from "./dmp";
 import {createElement} from "../../utilities/travrs";
 import {moveNodes, wrapElement, b64EncodeUnicode} from "../../utilities/tools";
 
@@ -65,13 +66,16 @@ const getNodeContent = (node) => {
 // Replace inline nodes with base64Hash.
 const hashNode = (hashTable) => (node) => {
   const content = getNodeContent(node);
-  const key = `%#${b64EncodeUnicode(content)}#%`;
+  const key = `${unique(content)}`;
   const marker = document.createTextNode(key);
   const parent = node.parentNode;
   if (!hashTable[key]) hashTable[key] = content;
   parent.insertBefore(marker, node);
   parent.removeChild(node);
 };
+
+// Create comparator instance.
+const dmp = new diff_match_patch();
 
 
 // --------------------------------------------
@@ -82,6 +86,7 @@ export default function diffNodes (oldSectionA, sectionB) {
 
     // Get copy to not destron oryginal.
     const sectionA = oldSectionA.cloneNode(true);
+
     // Set breakpoint id.
     sectionA.id = 'root';
 
@@ -107,13 +112,24 @@ export default function diffNodes (oldSectionA, sectionB) {
       // Pull out non-text nodes and replace them with ID markers.
       Array.from(editablesA[id].children).forEach(hash);
       Array.from(editablesB[id].children).forEach(hash);
+
+      console.log(editablesA[id].innerHTML);
+      console.log(editablesB[id].innerHTML);
+
       // Replace hashes with nodes.
-      outputIds[id].innerHTML = diffHTML(editablesA[id].innerHTML, editablesB[id].innerHTML).replace(/%#([\w\S\s]+?)#%/g, (match) => complexNodes[match]);
+      const diff = dmp.main(editablesA[id].innerHTML, editablesB[id].innerHTML);
+      dmp.cleanupSemantic(diff);
+
+      // Set diffed HTML.
+      outputIds[id].innerHTML = Object.keys(complexNodes)
+        // Compare contents (dmp) + restore 'complexNodes'.
+        .reduce((html, key) => html.replace(key, complexNodes[key]), dmp.html(diff))
+        // Replace commnet ids with commnet-markers <cm/>
+        .replace(/!#([A-Za-z0-9-_]+?)#!/g, (a, match) => `<cm data-cid="${match}"></cm>`);
     });
 
     // Handle added & remnoved nodes.
     added.forEach(id => {
-      // wrapElement(outputIds[id], 'ins', { "data-skip-merge" : true })
       const ins = createElement('ins[data-select="true" data-skip-merge="true"]');
       moveNodes(outputIds[id], ins);
       outputIds[id].appendChild(ins);
