@@ -1231,10 +1231,10 @@ diff_match_patch.prototype.html = function(diffs) {
     var text = data.replace(no_break_space, ' ').replace(pattern_amp, '&amp;').replace(pattern_lt, '&lt;').replace(pattern_gt, '&gt;');
     switch (op) {
       case DIFF_INSERT:
-        html[x] = '<ins data-select="true">' + text + '</ins>';
+        html[x] = '<ins data-select="true" contenteditable="false">' + text + '</ins>';
         break;
       case DIFF_DELETE:
-        html[x] = '<del data-select="true">' + text + '</del>';
+        html[x] = '<del data-select="true" contenteditable="false">' + text + '</del>';
         break;
       case DIFF_EQUAL:
         html[x] = text;

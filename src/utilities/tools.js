@@ -281,3 +281,7 @@ export const Memo = (modifier, previous) => {
 
 export const copyAttrs = (from, to) =>
   Array.from(from.attributes).forEach(attr => to.setAttribute(attr.name, attr.value));
+
+
+  // Cut from string from start to end index.
+  export const cutString = (str, cutStart, cutEnd) => str.substring(0, cutStart) + str.substring(cutEnd + 1);

@@ -1,7 +1,8 @@
 import {unique} from "shorthash";
+import {cleanCopy} from "./cmtools";
 import diff_match_patch from "./dmp";
+import {moveNodes} from "../../utilities/tools";
 import {createElement} from "../../utilities/travrs";
-import {moveNodes, wrapElement, b64EncodeUnicode} from "../../utilities/tools";
 
 
 // ---- DIFF-NODES HELPERS ----------------
@@ -43,7 +44,7 @@ const tansferNode = (node, path) => {
 // Add removed nodes to
 const addRemoved = (node, container) => {
   const path = [];
-  const del = createElement('del[data-select="true" data-skip-merge="true"]');
+  const del = createElement('del[data-select="true" contenteditable="false"]');
   moveNodes(node, del);
   node.appendChild(del);
 
@@ -58,8 +59,7 @@ const addRemoved = (node, container) => {
 // Distinguish MathJax MATH from other nodes.
 const getNodeContent = (node) => {
   let content = node.outerHTML;
-  if (node.matches('span.cnxb-math'))
-    content = node.querySelector('script').textContent;
+  if (node.matches('span.cnxb-math')) content = node.querySelector('script').textContent;
   return content;
 };
 
@@ -82,61 +82,65 @@ const dmp = new diff_match_patch();
 // ---- DIFF-NODES CORE ------------
 // ------------------------
 
-export default function diffNodes (oldSectionA, sectionB) {
+export default function diffNodes (oldSectionA, newSectionB) {
 
-    // Get copy to not destron oryginal.
-    const sectionA = oldSectionA.cloneNode(true);
+  if (!oldSectionA instanceof HTMLElement || !newSectionB instanceof HTMLElement) throw "diff(A,B) params need to be HTMLElements";
 
-    // Set breakpoint id.
-    sectionA.id = 'root';
+  // Get copy to not destron oryginal.
+  const sectionA = cleanCopy(oldSectionA, true);
+  const sectionB = cleanCopy(newSectionB);
 
-    // Create storage for inline nodes/math.
-    const complexNodes = {};
-    const hash = hashNode(complexNodes);
+  // Set breakpoint id.
+  sectionA.id = 'root';
 
-    // Get all editable nodes from both versions.
-    const editablesA = domToMap(Array.from(sectionA.querySelectorAll('p[data-target=editable]')));
-    const editablesB = domToMap(Array.from(sectionB.querySelectorAll('p[data-target=editable]')));
+  // Create storage for inline nodes/math.
+  const complexNodes = {};
+  const hash = hashNode(complexNodes);
 
-    // Get element ids diff -> less computing than parsing tree.
-    const { same, added, removed } = arrayCompare(Object.keys(editablesA), Object.keys(editablesB));
+  // Get all editable nodes from both versions.
+  const editablesA = domToMap(Array.from(sectionA.querySelectorAll('p[data-target=editable]')));
+  const editablesB = domToMap(Array.from(sectionB.querySelectorAll('p[data-target=editable]')));
 
-    // console.log(same, added, removed ); // Debug.
+  // Get element ids diff -> less computing than parsing tree.
+  const { same, added, removed } = arrayCompare(Object.keys(editablesA), Object.keys(editablesB));
 
-    // Create output tree.
-    const output = sectionB.cloneNode(true);
-    const outputIds = domToMap(Array.from(output.querySelectorAll('p[data-target=editable]')));
+  // console.log(same, added, removed ); // Debug.
 
-    // Compare same nodes.
-    same.forEach(id => {
-      // Pull out non-text nodes and replace them with ID markers.
-      Array.from(editablesA[id].children).forEach(hash);
-      Array.from(editablesB[id].children).forEach(hash);
+  // Create output tree.
+  const output = sectionB.cloneNode(true);
+  const outputIds = domToMap(Array.from(output.querySelectorAll('p[data-target=editable]')));
 
-      console.log(editablesA[id].innerHTML);
-      console.log(editablesB[id].innerHTML);
+  // Compare same nodes.
+  same.forEach(id => {
 
-      // Replace hashes with nodes.
-      const diff = dmp.main(editablesA[id].innerHTML, editablesB[id].innerHTML);
-      dmp.cleanupSemantic(diff);
+    // Pull out non-text nodes and replace them with ID markers.
+    Array.from(editablesA[id].children).forEach(hash);
+    Array.from(editablesB[id].children).forEach(hash);
 
-      // Set diffed HTML.
-      outputIds[id].innerHTML = Object.keys(complexNodes)
-        // Compare contents (dmp) + restore 'complexNodes'.
-        .reduce((html, key) => html.replace(key, complexNodes[key]), dmp.html(diff))
-        // Replace commnet ids with commnet-markers <cm/>
-        .replace(/!#([A-Za-z0-9-_]+?)#!/g, (a, match) => `<cm data-cid="${match}"></cm>`);
-    });
+    // Compare contents.
+    const diff = dmp.main(editablesA[id].innerHTML, editablesB[id].innerHTML);
 
-    // Handle added & remnoved nodes.
-    added.forEach(id => {
-      const ins = createElement('ins[data-select="true" data-skip-merge="true"]');
-      moveNodes(outputIds[id], ins);
-      outputIds[id].appendChild(ins);
-    });
+    // Apply Semantic Cleanup.
+    dmp.cleanupSemantic(diff);
 
-    removed.forEach(id => addRemoved(editablesA[id], output));
+    // Compile diffed HTML.
+    outputIds[id].innerHTML = Object.keys(complexNodes)
+      // Compare contents (dmp) + restore 'complexNodes'.
+      .reduce((html, key) => html.replace(key, complexNodes[key]), dmp.html(diff))
+      // Replace commnet ids with commnet-markers <cm/>
+      .replace(/!#([A-Za-z0-9-_\.]+?)#!/g, (a, match) => `<cm data-cid="${match}"></cm>`);
+  });
 
-    // Return new Editable tree.
-    return output;
-  };
+  // Handle added nodes.
+  added.forEach(id => {
+    const ins = createElement('ins[data-select="true" contenteditable="false"]');
+    moveNodes(outputIds[id], ins);
+    outputIds[id].appendChild(ins);
+  });
+
+  // Handle remnoved nodes.
+  removed.forEach(id => addRemoved(editablesA[id], output));
+
+  // Return new Editable tree.
+  return output.firstElementChild;
+};

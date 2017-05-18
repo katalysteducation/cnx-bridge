@@ -17,6 +17,7 @@ const revisionItem = (id, date, user, avatar) =>`
     button.cnxb-history-diff[title="Diff with this revision" data-version="${date}" data-diff="true"]
       i.material-icons > "compare_arrows"`;
 
+
 // ------------------------------------------------
 // ---- HISTORY CORE ----------------
 // ------------------------
@@ -26,13 +27,16 @@ export default (function History () {
   // Create UI element.
   const element = template(scaffold);
 
-  // Storege of all revision.
+  // Revision storege.
   const storage = {};
 
   // Section scaffold references.
   const sections = {};
 
-  // Active element toggler.
+  /**
+   * Set active class to selected element.
+   * @type {Memo}
+   */
   const active = new Memo((current, active) => {
     if (!current.matches('.cnxb-history-item')) return active;
     if (active) active.classList.remove('active');
@@ -40,7 +44,10 @@ export default (function History () {
     return current;
   });
 
-  // Run user action.
+  /**
+   * Run action according to user's choice.
+   * @param  {Event}  event Click event.
+   */
   const detectAction = (event) => {
     const {version, diff} = event.target.dataset;
     active(event.target);
@@ -53,13 +60,15 @@ export default (function History () {
 
   // ---- API METHODS ----------------
 
-  // Apply history entries.
-  const apply = (revisions, insync) => {
-    // Set empty placeholder if no data.
-    if (!revisions || revisions.length === 0) {
-      element.appendChild(createElement('div.cnxb-empty', 'No archive data for this module'));
-      return;
-    }
+  /**
+   * Populate history entries.
+   * @param  {Object} revisions Collection of all revisions in Bridge Archive.
+   * @return {Object}           The newest revision.
+   */
+  const set = (revisions) => {
+    // Set empty placeholder if no data & exit.
+    if (!revisions || revisions.length === 0) return element.appendChild(createElement('div.cnxb-empty', 'No archive data for this module'));
+
     // Create responses scaffold.
     const rlength = revisions.length;
     const revsTemplate = revisions.reverse().reduce((result, revision, index) => {
@@ -78,5 +87,5 @@ export default (function History () {
   const revision = (date) => storage[date];
 
   // Public API.
-  return { element, apply, revision };
+  return { element, set, revision };
 }());

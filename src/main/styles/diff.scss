@@ -2,6 +2,8 @@
 // ---- INSERT ELEMENTS ----------------
 
 ins {
+  min-width: 4px;
+  min-height: 15px;
   position: relative;
   display: inline-block;
   user-select: none !important;
@@ -31,6 +33,8 @@ ins {
 // ---- DELETE ELEMENTS ----------------
 
 del {
+  min-width: 4px;
+  min-height: 15px;
   position: relative;
   display: inline-block;
   user-select: none !important;;
