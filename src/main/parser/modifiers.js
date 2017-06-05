@@ -26,15 +26,14 @@ export default function modifiers (node) {
     return img;
   }
 
-  // Remove empty labels.
-  if (node.tagName === 'label' && node.textContent.length === 0) return;
+  // // Remove empty labels.
+  // if (node.tagName === 'label' && node.textContent.length === 0) return;
 
   // Remove comments.
   if (node.nodeType === 8) return;
 
   // Skip Equations.
   if (node.tagName === 'equation') {
-    // Property `skipNode` set to 'true' force parser to skip this node from deep parsing and clone its content.
     node.skipNode = true;
     node.appendChild(moveNodes(node, createElement('p[data-target="editable"]')));
     return node;

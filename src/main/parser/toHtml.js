@@ -11,7 +11,7 @@ const isOnlyChild = (node) => node.parentNode.children.length === 1;
 const isBlockTerm = (term) =>
   !term.previousSibling && term.nextSibling && term.nextSibling.tagName ||
   !term.nextSibling && term.previousSibling && term.previousSibling.tagName ||
-  term.previousSibling.tagName === 'term' && term.nextSibling.tagName === 'term';
+  term.previousSibling && term.previousSibling.tagName === 'term' && term.nextSibling && term.nextSibling.tagName === 'term';
 
 // Make <DIV> clone of passed XML node. If deep === true make a deep copy.
 const cloneElement = (node, deep = false) => {
@@ -111,8 +111,12 @@ const convert = (node, parent, modifier) => {
 export default function toHtml (cnxml) {
 
   cnxml = cnxml
-    // Remove retuns chatacters and multiple spaces.
-    .replace(/(\n)|(\s{2,})/g,'')
+    // Remove newline chatacters.
+    .replace(/\n/g, '')
+    // Remove multiple spaces.
+    .replace(/  +/g, ' ')
+    // Remove spaces netween tags.
+    .replace(/(>\s+?<)/g, '><')
     // Remove MathML namespace.
     .replace(/<(\/?)m:|\s*xmlns(:m)?\s*="[\s\S\w]+?"/g, (match, slash) => ~match.indexOf('<') ? ('<' + slash) : '');
 
@@ -124,6 +128,8 @@ export default function toHtml (cnxml) {
   // are used more like a block element and they are part of an internal strucctre.
   // Those cases need to be distinguish from regular inline applications.
   Array.from(xml.querySelectorAll('term')).forEach(term => !isBlockTerm(term) && term.setAttribute('inline', true));
+  // Remove all empty labels.
+  Array.from(xml.querySelectorAll('label')).forEach(label => label.childNodes.length === 0 && label.parentNode.removeChild(label));
 
   // Convret XML to DOM & return HTML Editable Tree Structure.
   return convert(xml, createElement('div'), modifiers);

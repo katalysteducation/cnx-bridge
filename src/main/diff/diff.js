@@ -1,5 +1,4 @@
 import {unique} from "shorthash";
-import {cleanCopy} from "./cmtools";
 import diff_match_patch from "./dmp";
 import {moveNodes} from "../../utilities/tools";
 import {createElement} from "../../utilities/travrs";
@@ -73,6 +72,16 @@ const hashNode = (hashTable) => (node) => {
   parent.insertBefore(marker, node);
   parent.removeChild(node);
 };
+
+// Clean container from comments.
+const cleanCopy = (container, removeComments = false) => {
+  const clone = container.cloneNode(true);
+  removeComments
+    ? Array.from(clone.querySelectorAll('quote[type=comment]')).forEach(comment => comment.outerHTML = comment.innerHTML)
+    : Array.from(clone.querySelectorAll('quote[type=comment]')).forEach(comment => comment.outerHTML = `!#${comment.id}#!${comment.innerHTML}`);
+  return clone;
+};
+
 
 // Create comparator instance.
 const dmp = new diff_match_patch();

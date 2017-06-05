@@ -1,6 +1,6 @@
 import diff from "../../diff";
 import {toHTML} from "../../parser";
-import Messenger from "../messenger";
+import {commentsToModel} from "../../diff/merge";
 import {emit, humanizeDate} from "../../../utilities/tools";
 import {template, createElement} from "../../../utilities/travrs";
 require('./revision.scss');
@@ -61,6 +61,8 @@ export default (function Revision () {
     currentVersion: undefined,
     // Diffi from unsync. version & current content.
     silentRevision: undefined,
+    // Commnets model for current content.
+    contentCommentsModel: undefined
   };
 
   // Error command list.
@@ -78,7 +80,7 @@ export default (function Revision () {
 
       // Replace current content with the diff-ied version of unsynchronized content.
       if (action === 'resolve')
-        element.dispatchEvent(emit('replace', { revision: storage.silentRevision, label: 'Unsynchronized revision'}));
+        element.dispatchEvent(emit('replace', { revision: storage.silentRevision, cm: storage.contentCommentsModel, label: 'Unsynchronized revision'}));
 
       // Replace Content with last version stored in Bridge Archive.
       else if (action === 'restore')
@@ -90,7 +92,7 @@ export default (function Revision () {
 
     // Replace current content with the diff-ied version of latest changes.
     else if (action === 'diff')
-      element.dispatchEvent(emit('replace', { revision: storage.latestChanges, label: 'Latest changes', date: storage.latestDate }));
+      element.dispatchEvent(emit('replace', { revision: storage.latestChanges, cm: storage.contentCommentsModel, label: 'Latest changes', date: storage.latestDate }));
   };
 
   // Add listeners.
@@ -109,6 +111,8 @@ export default (function Revision () {
     const revisionsLength = revisions.length;
     const latest = revisionsLength > 1 ? revisions[revisionsLength - 2] : undefined;
 
+    // Set content comments model.
+    storage.contentCommentsModel = commentsToModel(currentContent);
     // Set latest saved version (the current one).
     storage.currentVersion = revisions.slice(-1)[0];
 

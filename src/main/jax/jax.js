@@ -15,24 +15,28 @@ const renderMath = () => {
   // Render all math and apply click wrapper.
   equations.forEach(math => {
     const equation = document.getElementById(`${math.inputID}-Frame`);
-    const parent = equation.parentNode;
+
+    // TODO: Deprecated?
+    // const parent = equation.parentNode;
+    // MathJax generate 3 nodes per equation -> wrap them all in one.
+    // const wrapper = (parent.classList.contains('MJXc-display'))
+    //   ? wrapElement([parent.previousSibling, parent, parent.nextSibling], 'div')
+    //   : wrapElement([equation.previousSibling, equation, equation.nextSibling], 'span');
 
     // MathJax generate 3 nodes per equation -> wrap them all in one.
-    const wrapper = (parent.classList.contains('MJXc-display'))
-      ? wrapElement([parent.previousSibling, parent, parent.nextSibling], 'div')
-      : wrapElement([equation.previousSibling, equation, equation.nextSibling], 'span');
-
-    wrapper.className = 'glass cnxb-math';
-    wrapper.setAttribute('contenteditable', false);
-    wrapper.dataset.select = 'math';
-    wrapper.dataset.mathId = math.inputID;
+    if (!equation.parentNode.classList.contains('cnxb-math')) {
+      const wrapper =  wrapElement([equation.previousSibling, equation, equation.nextSibling], 'span');
+      wrapper.className = 'glass cnxb-math';
+      wrapper.dataset.select = 'math';
+      wrapper.dataset.mathId = math.inputID;
+      wrapper.setAttribute('contenteditable', false);
+    }
   });
 
 
   // Re-render match no the page.
-  const reRenderMath = () => {
-    MathJax.Hub.Queue(["Typeset", MathJax.Hub, renderMath]);
-  };
+  const reRenderMath = () => MathJax.Hub.Queue(["Typeset", MathJax.Hub, renderMath]);
+
 
   // Match mutaion type & run updateMath().
   const traceObserver = (mutations) =>
@@ -62,7 +66,7 @@ const renderMath = () => {
     attributes: true,
   	childList: false,
   	characterData: false,
-    attributeFilter: ['data-math-id', 'data-re-render']
+    attributeFilter: ['data-math-id', 'data-re-render', 'value']
   });
 };
 

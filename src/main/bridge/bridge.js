@@ -23,10 +23,9 @@ import MergeEditor from "../editors/merge";
 import diff from "../diff";
 import {toHTML, toCNXML} from "../parser";
 import PubSub from "../../utilities/pubsub";
-import {watchMerge, commentsToModel} from "../diff/cmtools";
 import {template, createElement} from "../../utilities/travrs";
-import {rejectAllChanges, acceptAllChanges} from "../diff/merge";
 import {uid, date, getNodesOut, Memo} from "../../utilities/tools";
+import {rejectAllChanges, acceptAllChanges, watchMerge, commentsToModel} from "../diff/merge";
 
 require('../styles/bridge.scss');
 
@@ -133,7 +132,7 @@ export default function Bridge (root) {
 
     // Alt + x -> Show current CNXML.
     if (event.altKey && event.key === 'x') {
-      mergeAssistant('reject');
+      rejectAllChanges(Array.from(Content.element.querySelectorAll('del, ins')));
       console.log(toCNXML(Content.pull()));
     }
 
@@ -239,14 +238,6 @@ export default function Bridge (root) {
     return active;
   });
 
-
-  // Merge comments from compared revisions and leave only the most recent ones.
-  // const mergeComments = (contentRevComs, compareRevComs) => {
-  //   const ids = contentRevComs.map((comment) => comment.id);
-  //   const comments = contentRevComs.concat(compareRevComs.filter((comment) => ~!ids.indexOf(comment.id)));
-  //   Comments.set(comments);
-  // };
-
   // Scroll Content to show selected Comment.
   const scrollCommentInContent = ({detail}) => {
     let comment;
@@ -277,32 +268,26 @@ export default function Bridge (root) {
   // ---- REVISIONS HANDLES ----------------
   // ---------------------------------------
 
-  // Allows to accept OR reject all changes in the Content at once.
-  const mergeAssistant = (value) => {
-    let action;
-    // Detect action.
-    if (typeof value === 'string') action = value;
-    else if (value.detail) action = value.detail.action;
-    // Get all diff markers from Content.
-    const diffs = Array.from(Content.element.querySelectorAll('del, ins'));
-    // Execute action.
-    if (action === 'reject') rejectAllChanges(diffs)
-    else if (action === 'accept') acceptAllChanges(diffs);
-    else return;
-    // Update Comments.
-    Comments.find(Content.element)({comments: Comments.pull()});
+  /**
+   * Allows to accept OR reject all changes in the Content at once.
+   * @param  {Object} detail Event.detail contains name of action to perform.
+   */
+  const acceptOrRejectAll = ({detail}) => {
+    if (!detail.action) return;
+    // Accep/Reject all changes.
+    detail.action === 'reject'
+      ? rejectAllChanges(Array.from(Content.element.querySelectorAll('del, ins')))
+      : acceptAllChanges(Array.from(Content.element.querySelectorAll('del, ins')));
+    // Hide accept buttons in Toolbar.
     Toolbar.revision(false);
-    setCurrentDraft();
   };
 
   // Fires when MergeEditor unwraps diff marker.
   const onConflictResolve = ({ids}) => {
-    state.watchMerge && state.watchMerge();
-
-    // Checkd if comments were removed from the Content, and if its true remove them from the Comments panel.
-    // if (ids.length > 0) Comments.remove(ids.filter(id => !document.getElementById(id)));
-    // Check if there more diffs in current content.
-    // if (isResolved()) setCurrentDraft();
+    // Checkd if comments were removed from the Content, and if so, remove them from the Comments panel.
+    if (ids.length > 0) Comments.remove(ids.filter(id => !document.getElementById(id)));
+    // Run content watcher & set CurrentDraft if merge ended.
+    if(state.watchMerge && state.watchMerge()) setCurrentDraft();
   };
 
   /**
@@ -331,7 +316,7 @@ export default function Bridge (root) {
    *                          content is replaced.
    */
   const replaceContent = ({detail}) => {
-    const {revision, label, date} = detail;
+    const {revision, label, date, cm} = detail;
     const revReference = History.revision(date) || {comments:[]};
 
     // Continuation function.
@@ -343,6 +328,8 @@ export default function Bridge (root) {
       Comments.set(revReference.comments);
       // Replace content.
       Content.set(revision);
+      // Set diffing-ends watcher to determine when restore commnets.
+      state.watchMerge = watchMerge(Content.element, cm);
       // Re-render Math.
       tools.proxy.dataset.reRender = true;
     };
@@ -365,14 +352,14 @@ export default function Bridge (root) {
     if (!revision || !isResolved()) return Messenger.info('You neet to resolve all conflicts to run another DIFF operation');
     else if (state.displayRevisionDate === date) return Messenger.info('You are trying to compare the same versions');
 
-    // Create commnets model for current content, before it is override by the diff content.
-    const commnetsModel = commentsToModel(Content.element);
+    // Create commnets model for current content.
+    const contentComments = commentsToModel(Content.element);
     // Set Toolbar label & show revisoin buttons.
     Toolbar.label(label, state.displayRevisionDate, date).revision(true);
     // Compare revision (old content) with current (new) content.
     Content.set(diff(toHTML(revision.content), Content.element));
     // Set diffing-ends watcher to determine when restore commnets.
-    state.watchMerge = watchMerge(Content.element, commnetsModel);
+    state.watchMerge = watchMerge(Content.element, contentComments);
     // Re-render Math.
     tools.proxy.dataset.reRender = true;
   };
@@ -462,7 +449,7 @@ export default function Bridge (root) {
     Revision.element.addEventListener('replace', replaceContent);
 
     // Revision listeners.
-    Toolbar.element.addEventListener('revision', mergeAssistant);
+    Toolbar.element.addEventListener('revision', acceptOrRejectAll);
 
     // Comments listeners.
     Comments.element.addEventListener('remove', removeComment);
@@ -524,7 +511,7 @@ export default function Bridge (root) {
     // Save Current Draft & set it as current revision.
     const continueSaving = (accepted) => {
       if (!accepted) return;
-      mergeAssistant('reject');
+      rejectAllChanges(Array.from(Content.element.querySelectorAll('del, ins')));
       setCurrentDraft();
       Messenger.success('Current Draft was saved');
     };
@@ -543,6 +530,8 @@ export default function Bridge (root) {
     Storage.history.then(Comments.find(Content.element))
     // Set Toolbar label.
     Toolbar.label('Legacy Content');
+    // Re-render Math.
+    tools.proxy.dataset.reRender = true;
     // Open Bridge UI if closed.
     if (!root.classList.contains('passive')) toggle();
   }

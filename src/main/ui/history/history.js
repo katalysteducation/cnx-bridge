@@ -83,7 +83,11 @@ export default (function History () {
     return revisions.slice(0,1)[0];
   };
 
-  // Return revision object by date.
+  /**
+   * Return revision object by date.
+   * @param  {String} date Stringified date of the revision.
+   * @return {Object}      Revision object.
+   */
   const revision = (date) => storage[date];
 
   // Public API.
