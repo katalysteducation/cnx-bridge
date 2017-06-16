@@ -1,6 +1,6 @@
 {
   "name": "CNX Bridge",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "manifest_version": 2,
   "description": "UI Enhancement Layer for CNX Legacy Editor with revision control",
   "icons": {

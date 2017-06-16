@@ -112,23 +112,6 @@ export const swapItems = (array, indexA, indexB) => {
 };
 
 
-// Allow to merge two dom elements if they are siblings with the same type.
-export const mergeSameSiblings = (list) =>
-  list.reduce((result, node) => {
-    const index = result.length - 1;
-    // Skip different siblings elements & those with 'data-skip-merge' attribute
-    if (result[index] && !result[index].dataset.skipMerge && node.tagName === result[index].tagName && result[index] === node.previousSibling) {
-      result[index].innerHTML += node.innerHTML;
-      node.parentNode.removeChild(node);
-    }
-    else {
-      result.push(node);
-    }
-
-    return result;
-  },[]);
-
-
 // ---- Create CNXBridge unique ID from date -----------------
 export const uid = () => {
   return 'cnxb-' + ((+new Date) + Math.random()* 100).toString(32);

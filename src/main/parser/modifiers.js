@@ -39,12 +39,6 @@ export default function modifiers (node) {
     return node;
   }
 
-  // Block comment editing
-  if (node.matches && node.matches('quote[type=comment]')) {
-    node.setAttribute('contenteditable', false);
-    return node;
-  };
-
   // Default return (do not modify element).
   return node;
 };

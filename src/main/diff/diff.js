@@ -1,5 +1,5 @@
 import {unique} from "shorthash";
-import diff_match_patch from "./dmp";
+import jsdiff from "./jsdiff";
 import {moveNodes} from "../../utilities/tools";
 import {createElement} from "../../utilities/travrs";
 
@@ -78,13 +78,9 @@ const cleanCopy = (container, removeComments = false) => {
   const clone = container.cloneNode(true);
   removeComments
     ? Array.from(clone.querySelectorAll('quote[type=comment]')).forEach(comment => comment.outerHTML = comment.innerHTML)
-    : Array.from(clone.querySelectorAll('quote[type=comment]')).forEach(comment => comment.outerHTML = `!#${comment.id}#!${comment.innerHTML}`);
+    : Array.from(clone.querySelectorAll('quote[type=comment]')).forEach(comment => comment.outerHTML = `!#${comment.id}#! ${comment.innerHTML}`);
   return clone;
 };
-
-
-// Create comparator instance.
-const dmp = new diff_match_patch();
 
 
 // --------------------------------------------
@@ -126,18 +122,12 @@ export default function diffNodes (oldSectionA, newSectionB) {
     Array.from(editablesA[id].children).forEach(hash);
     Array.from(editablesB[id].children).forEach(hash);
 
-    // Compare contents.
-    const diff = dmp.main(editablesA[id].innerHTML, editablesB[id].innerHTML);
-
-    // Apply Semantic Cleanup.
-    dmp.cleanupSemantic(diff);
-
     // Compile diffed HTML.
     outputIds[id].innerHTML = Object.keys(complexNodes)
       // Compare contents (dmp) + restore 'complexNodes'.
-      .reduce((html, key) => html.replace(key, complexNodes[key]), dmp.html(diff))
+      .reduce((html, key) => html.replace(key, complexNodes[key]), jsdiff(editablesA[id].innerHTML, editablesB[id].innerHTML))
       // Replace commnet ids with commnet-markers <cm/>
-      .replace(/!#([A-Za-z0-9-_\.]+?)#!/g, (a, match) => `<cm data-cid="${match}"></cm>`);
+      .replace(/!#([A-Za-z0-9-_\.]+?)#!/g, (a, match) => `<cm id="${match}"><i class="material-icons">chat</i></cm>`);
   });
 
   // Handle added nodes.

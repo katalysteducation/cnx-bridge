@@ -1,7 +1,6 @@
 import {commentEl, responseEl} from "./templates";
-import {commentsToModel, markersToComments} from "./cmtools";
+import {emit, date, Memo} from "../../../utilities/tools";
 import {template, createElement} from "../../../utilities/travrs";
-import {emit, date, Memo, arrayCompare} from "../../../utilities/tools";
 require('./comments.scss');
 
 // Component scaffold
@@ -19,7 +18,6 @@ export default (function Comments () {
   const element = template(scaffold);
   const commentsList = new Map();
   const userData = {};
-  let commentsModel;
 
   // Create empty placeholder.
   let empty = element.appendChild(createElement('div.cnxb-empty', 'No comments for this revision'));
@@ -155,6 +153,21 @@ export default (function Comments () {
 
 
   /**
+   * Remove comments present on the 'list'.
+   * @param  {Array}  list List of commnet IDs to remove.
+   */
+  const remove = (list) => {
+    list.forEach(id => {
+      const comment = commentsList.get(id);
+      if (comment) {
+        comment.ref.parentNode.removeChild(comment.ref);
+        commentsList.delete(id);
+      }
+    });
+  };
+
+
+  /**
    * Set commnet for current revision.
    * @param {Array} comments List of comment in revision.
    * @return {Map}           Map with comments in current scope.
@@ -189,43 +202,6 @@ export default (function Comments () {
     set(lastRevision.comments.filter((comment) => ~ids.indexOf(comment.id)));
   };
 
-  /**
-   * Check if comments in 'container' matches those in 'commentsList' and remove missmatches.
-   * @param  {HTMLElement} container Reference to the element with comments.
-   */
-  const unify = (container) => {
-    const {added, removed} = arrayCompare (
-      Array.from(commentsList.keys()),
-      Array.from(container.querySelectorAll('quote[type=comment]')).map(comment => comment.id)
-    );
-
-    // IDs missing in content -> remove from the 'commentsList'.
-    removed.forEach(id => {
-      const comment = commentsList.get(id);
-      comment.ref.parentNode.removeChild(comment.ref);
-      commentsList.delete(id);
-    });
-
-    // IDs missing in comments -> remove from the 'container'.
-    added.forEach(id => {
-      const ref = container.querySelector(`quote[id="${id}"]`);
-      ref.parentNode.removeChild(ref);
-    });
-  };
-
-  /**
-   * Restotres comments after merge operation.
-   * @param  {HTMLElement} container Containert where comments shpuld be restored.
-   */
-  const restore = (container) => (markersToComments(container, commentsModel), unify(container));
-
-
-  /**
-   * Create commnets model for the source DOM tree.
-   * @param  {HTMLElement} container Reference to the element containing commnets tags (quote[type=comment]).
-   */
-  const model = (container) => commentsModel = commentsToModel(container);
-
 
   // Pubic API.
   return {
@@ -239,15 +215,11 @@ export default (function Comments () {
     set,
     // Add new commnet to current scope.
     add,
+    // Remove commnet from current scope.
+    remove,
     // Get all commnets from current scope.
     pull,
     // Find and set 'active' class to the comment with given ID.
-    select,
-    // Restore commenst after merge.
-    restore,
-    // Create commnets model for current content.
-    model,
-    // Compare Content coments with 'commentsModel' and remove missmatches.
-    unify
+    select
   };
 }());

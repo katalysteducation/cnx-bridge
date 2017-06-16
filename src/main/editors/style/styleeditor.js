@@ -77,7 +77,7 @@ export default function StyleEditor (pubsub) {
     term: style('term', types, pubsub),
     bold: style('emphasis[effect="bold"]', types, pubsub),
     italic: style('emphasis[effect="italic"]', types, pubsub),
-    commentStyle: style(`quote[type="comment" display="inline" contenteditable="false"]`, types, pubsub),
+    commentStyle: style(`quote[type="comment" display="inline"]`, types, pubsub),
 
     comment (state) {
       activateStylePanel(refs.comment.classList.contains('active'));

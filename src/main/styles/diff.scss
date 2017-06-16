@@ -5,7 +5,7 @@ ins {
   min-width: 4px;
   min-height: 15px;
   position: relative;
-  display: inline-block;
+  // display: inline-block;
   user-select: none !important;
 
   &[data-skip-merge] {
@@ -36,8 +36,8 @@ del {
   min-width: 4px;
   min-height: 15px;
   position: relative;
-  display: inline-block;
-  user-select: none !important;;
+  // display: inline-block;
+  user-select: none !important;
 
   &[data-skip-merge] {
     display: block;

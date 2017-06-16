@@ -3,7 +3,6 @@ import {getNodesOut} from "../../utilities/tools";
 // ---- MERGE TOOLS ----------------
 
 // Allow to merge two dom elements if they are siblings with the same type.
-/*
 export const mergeSameSiblings = (list) =>
   list.reduce((result, node) => {
     const index = result.length - 1;
@@ -18,7 +17,6 @@ export const mergeSameSiblings = (list) =>
 
     return result;
   },[]);
-*/
 
 // Chek if node is onlu child.
 const isOnlyChild = (node) => !node.nextElementSibling && !node.prevElementSibling;

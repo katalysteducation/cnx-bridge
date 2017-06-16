@@ -24,6 +24,13 @@ p[data-target=editable] img {
   margin: 0 auto;
 }
 
+div[data-type=caption] > p[data-target=editable] {
+  color: #666 !important;
+  text-align: center;
+  font-style: italic;
+  font-size: 14px;
+}
+
 // ---- References --------------
 
 reference {
@@ -39,17 +46,38 @@ div[data-type=equation] p {
 
 // ---- Comments ----------------
 
-quote[type=comment] {
+quote[type="comment"] {
   padding: 0 2px;
   color: #212121;
-  cursor: pointer;
   background: #ffde00;
-  display: inline-block;
-  user-select: none !important;
   transition: background .3s ease;
 
   &.active {
     background: #ff9800;
+  }
+}
+
+// Comment marker.
+cm {
+  cursor: pointer;
+  position: relative;
+
+  & > i.material-icons {
+    color: #ffde00;
+    font-size: 18px;
+    vertical-align: top;
+  }
+
+  // Glass.
+  &:before {
+    content: ' ';
+    top: 0;
+    left: 0;
+    z-index: 10;
+    width: 100%;
+    height: 100%;
+    display: block;
+    position: absolute;
   }
 }
 
