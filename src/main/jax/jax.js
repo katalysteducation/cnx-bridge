@@ -15,9 +15,6 @@ window.onload = function() {
   // Equations references.
   let equations;
 
-  // Render math.
-  MathJax.Hub.Queue(["Typeset", MathJax.Hub, renderMath]);
-
   // Pares Equations.
   const renderMath = () => {
     // Get references.
@@ -42,7 +39,7 @@ window.onload = function() {
     nodeBuffer.innerHTML = `$ ${latex} $`;
     MathJax.Hub.Queue(["Typeset", MathJax.Hub, nodeBuffer]);
     const MJNodes = MathJax.Hub.getAllJax(nodeBuffer);
-    if (MJNodes.length > 0 && equations.some(math => (math.inputID === id && (found = math))))      
+    if (MJNodes.length > 0 && equations.some(math => (math.inputID === id && (found = math))))
       found.Text(MJNodes[0].root.toMathML());
   };
 
@@ -68,4 +65,6 @@ window.onload = function() {
     attributeFilter: ['data-math-id', 'data-re-render', 'value']
   });
 
+  // Render math - First run.
+  MathJax.Hub.Queue(["Typeset", MathJax.Hub, renderMath]);
 };

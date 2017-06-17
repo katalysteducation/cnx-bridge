@@ -57,6 +57,8 @@ const convert = (node, parent, modifier) => {
       // Clone text & inline elements.
       if (isInline(current) || isTextNode(current)) {
         editable.appendChild(current.cloneNode(true));
+        // Disable element editing.
+        if (current.disableNode) editable.setAttribute('contenteditable', false);
       }
       // For block elements.
       else {

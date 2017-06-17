@@ -15,6 +15,7 @@ import Messenger from "../ui/messenger";
 import pscroll from "perfect-scrollbar";
 
 // Editors.
+import MetaEditor from "../editors/meta";
 import MathEditor from "../editors/math";
 import StyleEditor from "../editors/style";
 import MergeEditor from "../editors/merge";
@@ -42,6 +43,7 @@ const scaffold = `
         @toolbar
       div.cnxb__content >
         @content
+    @meta
     @proxy
 `;
 
@@ -68,6 +70,7 @@ export default function Bridge (root) {
     outliner: outlinerPanels.view,
     messages: Messenger.element,
     // Workspace.
+    meta: MetaEditor.element,
     toolbar: Toolbar.element,
     content: contentPanels.view,
     // Hidden input -> MathJax connection.
@@ -84,8 +87,6 @@ export default function Bridge (root) {
     },
     // Open Options Hook.
     optionsHook: undefined,
-    // Current comments watch function.
-    watchMerge: undefined,
     // Recent displayed revisoin date.
     displayRevisionDate: undefined
   };
@@ -153,24 +154,6 @@ export default function Bridge (root) {
   // to not interfere with reorder functionality.
   const select = new Select(contentPanels.view, state.editors);
 
-  // FIXME:
-  // const onInlineEditorOpen = ({editor, coords}) => {
-  //
-  //   const detectScroll = (event) => {
-  //     editor.dismiss();
-  //     contentPanels.view.removeEventListener('scroll', detectScroll);
-  //   };
-  //
-  //   contentPanels.view.addEventListener('scroll', detectScroll);
-  //
-  //   if (window.innerHeight - coords.bottom < 120) {
-  //     contentPanels.view.scrollTop = contentPanels.view.scrollTop + 120;
-  //     pscroll.update(contentPanels.view);
-  //     select.element.style.top = coords.bottom - 100 + 'px';
-  //   }
-  //
-  // };
-
   // Filter what can be selected by Inine Edutors.
   const selectEditable = (event) => {
     const editable = event.target.closest('p[data-target=editable][contenteditable=true]');
@@ -179,6 +162,10 @@ export default function Bridge (root) {
     else select.dismiss();
   };
 
+  // Run Image Alt-text editor.
+  const selectImage = ({altKey, target}) => {
+    if (altKey) MetaEditor.open(target);
+  };
 
   // ---------------------------------------
   // ---- GENERAL HANDLES -----------------
@@ -204,6 +191,7 @@ export default function Bridge (root) {
 
   // Detect clicked element inside editable element.
   const detectElement = (event) => {
+
     // Detect click on Comment node;
     if (event.target.matches('quote[type=comment]') || event.target.matches('cm')) {
       const comment = Comments.select(event.target.id);
@@ -218,6 +206,9 @@ export default function Bridge (root) {
         event.target.outerHTML = event.target.innerHTML;
       }
     }
+
+    // Detect clicking on Image OR Table.
+    else if (event.target.matches('img') || event.target.closest('div[data-type=table]')) selectImage(event);
   };
 
   // ---------------------------------------

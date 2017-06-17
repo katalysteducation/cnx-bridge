@@ -1,0 +1,110 @@
+.cnxb-meta-editor {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0;
+  z-index: 3500;
+  position: fixed;
+  background: rgba(0, 0, 0, 0.5);
+
+  // Hide.
+  opacity: 0;
+  z-index: 0;
+  overflow: hidden;
+  visibility:hidden;
+  transform: scale(0.95) translateZ(0);
+  transition: visibility 0s linear .5s, opacity .3s ease, transform .3s ease;
+
+  // Show.
+  &.show {
+    opacity: 1;
+    z-index: 3000;
+    visibility:visible;;
+    transform: scale(1) translateZ(0);
+    transition: opacity .3s ease, transform .3s ease, visibility 0s;
+
+    .cnxb-meta-editor-content {
+      bottom: 0;
+      opacity: 1;
+      max-height: 900px;
+      padding: 10px 15px;
+      transform: translateX(-50%) translateY(-50%);
+      transition: transform .4s ease, opacity .4s ease, margin .4s ease, padding .4s ease, bottom .7s ease, max-height .4s ease;
+    }
+  }
+
+  &-content {
+    left: 50%;
+    top: 50%;
+    padding: 0;
+    min-width: 680px;
+    min-height: 410px;
+    background: white;
+    border-radius: 5px;
+    position: absolute;
+
+    // animate
+    opacity: 0;
+    max-height: 0;
+    transform: translateX(-50%) translateY(-50%) translateZ(0);
+    box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
+    transition: transform .4s ease, opacity .4s ease, margin .4s ease, padding .4s ease, bottom .4s ease, max-height .4s ease;
+  }
+
+  &-header {
+    margin: 0px;
+    font-size: 19px;
+    font-weight: 300;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ccc;
+  }
+
+  &-input {
+    margin: 0px;
+    width: 100%;
+    border: none;
+    height: 320px;
+    padding: 10px 0;
+    font-size: 14px;
+    font-family: 'Roboto', sans-serif;
+    &:focus {
+      outline: none;
+    }
+  }
+
+  &-buttons {
+    padding: 15px;
+    text-align: right;
+
+    & > button {
+      padding: 0;
+      color: #333;
+      border: none;
+      opacity: 0.8;
+      cursor: pointer;
+      background: none;
+      margin-left: 20px;
+      border-radius: 2px;
+      text-transform: uppercase;
+      transition: .3s ease color;
+
+      &.accept:hover {
+        color: #1e8e26;
+      }
+
+      &.cancel:hover {
+        color: #be2814;
+      }
+
+      &:focus {
+        color: #666;
+        outline: none;
+      }
+
+      &:active {
+        opacity: 1;
+      }
+    }
+  }
+}
