@@ -1,7 +1,6 @@
-import {unique} from "shorthash";
 import jsdiff from "./jsdiff";
-import {moveNodes} from "../../utilities/tools";
 import {createElement} from "../../utilities/travrs";
+import {moveNodes, b64EncodeUnicode} from "../../utilities/tools";
 
 
 // ---- DIFF-NODES HELPERS ----------------
@@ -24,7 +23,7 @@ const arrayCompare = (arrayA, arrayB) => {
 };
 
 // Move node from one tree to another acording to provided 'path'.
-const tansferNode = (node, path) => {
+const transferNodes = (node, path) => {
   const [element, index] = path.pop();
   const currentNode = node.children[index];
 
@@ -37,7 +36,7 @@ const tansferNode = (node, path) => {
     currentNode.parentNode.replaceChild(element.cloneNode(true), currentNode);
   // Else search deeper.
   else if (path.length > 0)
-    tansferNode(currentNode, path);
+    transferNodes(currentNode, path);
 };
 
 // Add removed nodes to
@@ -52,7 +51,7 @@ const addRemoved = (node, container) => {
     path.push([node, Array.from(node.parentNode.children).indexOf(node)]);
     node = node.parentNode;
   }
-  tansferNode(container, path);
+  transferNodes(container, path);
 };
 
 // Distinguish MathJax MATH from other nodes.
@@ -65,13 +64,14 @@ const getNodeContent = (node) => {
 // Replace inline nodes with base64Hash.
 const hashNode = (hashTable) => (node) => {
   const content = getNodeContent(node);
-  const key = `${unique(content)}`;
+  const key = `%#${b64EncodeUnicode(content)}#%`;
   const marker = document.createTextNode(key);
   const parent = node.parentNode;
   if (!hashTable[key]) hashTable[key] = content;
   parent.insertBefore(marker, node);
   parent.removeChild(node);
 };
+
 
 // Clean container from comments.
 const cleanCopy = (container, removeComments = false) => {
@@ -122,10 +122,9 @@ export default function diffNodes (oldSectionA, newSectionB) {
     Array.from(editablesA[id].children).forEach(hash);
     Array.from(editablesB[id].children).forEach(hash);
 
-    // Compile diffed HTML.
-    outputIds[id].innerHTML = Object.keys(complexNodes)
-      // Compare contents (dmp) + restore 'complexNodes'.
-      .reduce((html, key) => html.replace(key, complexNodes[key]), jsdiff(editablesA[id].innerHTML, editablesB[id].innerHTML))
+    outputIds[id].innerHTML = jsdiff(editablesA[id].innerHTML, editablesB[id].innerHTML)
+      // Restore Complex Nodes.
+      .replace(/%#([\w\S\s]+?)#%/g, (match) => complexNodes[match])
       // Replace commnet ids with commnet-markers <cm/>
       .replace(/!#([A-Za-z0-9-_\.]+?)#!/g, (a, match) => `<cm id="${match}"><i class="material-icons">chat</i></cm>`);
   });

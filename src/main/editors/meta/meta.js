@@ -29,13 +29,13 @@ export default (function MetaEditor (pubsub) {
   const state = { target: undefined };
 
   const getTarget = (element) =>
-    element.matches('img') ? element : element.closest('div[data-type=table]');
+    element.matches('img') ? element.closest('div[data-type=media]') : element.closest('div[data-type=table]');
 
   const setMetaTag = (target, value) =>
-    target.matches('img') ? target.setAttribute('alt', value) : target.matches('div[data-type=table]') ? target.setAttribute('summary', value) : undefined;
+    target.matches('div[data-type=media]') ? target.setAttribute('alt', value) : target.matches('div[data-type=table]') ? target.setAttribute('summary', value) : undefined;
 
   const getMetaTag = (target) =>
-    target.matches('img') ? target.getAttribute('alt') : target.matches('div[data-type=table]') ? target.getAttribute('summary') : undefined;
+    target.matches('div[data-type=media]') ? target.getAttribute('alt') : target.matches('div[data-type=table]') ? target.getAttribute('summary') : undefined;
 
   // Handle user actions.
   const detectAction = ({target}) => {

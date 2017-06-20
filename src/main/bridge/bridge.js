@@ -11,7 +11,6 @@ import Toolbox from "../ui/toolbox";
 import Outliner from "../ui/outliner";
 import Comments from "../ui/comments";
 import Revision from "../ui/revision";
-import Metadata from "../ui/metadata";
 import Messenger from "../ui/messenger";
 import pscroll from "perfect-scrollbar";
 
@@ -62,7 +61,7 @@ export default function Bridge (root) {
 
   // UI's panels switcher.
   const contentPanels = Panels(Content.element);
-  const outlinerPanels = Panels(Outliner.element, Revision.element, History.element, Comments.element, Metadata.element);
+  const outlinerPanels = Panels(Outliner.element, Revision.element, History.element, Comments.element);
 
   // Tools DOM references (travrs' refs).
   const tools = {
@@ -333,13 +332,16 @@ export default function Bridge (root) {
       // Set Toolbar label & hide revisoin buttons.
       Toolbar.label(label, date).revision(true);
       // Set comments for selected revision.
-      Comments.set(revReference.comments);
+      // Comments.set(revReference.comments);
       // Replace content.
       Content.set(revision);
-      // Restore comments for current version.
-      Comments.restore(Content.element);
+
       // Hide Tollbar revision tools if no conflicts.
-      if (isResolved()) Toolbar.revision(false);
+      if (isResolved()) {
+        Toolbar.revision(false);
+        // Restore comments for current version.
+        Comments.restore(Content.element);
+      }
       // Re-render Math.
       reRenderMath();
     };
@@ -434,13 +436,11 @@ export default function Bridge (root) {
    * Transform CNXML into HTML and append it to the Content container, updating Outliner in the same time.
    * @param  {String} content CNXML markup as a string.
    */
-  const appendContent = ({content, metadata}) => {
+  const appendContent = ({content}) => {
     // Create content editable structure.
     Content.set(toHTML(content).firstElementChild);
     // Update outliner.
     Outliner.update(Content.pull());
-    // Apply metadata.
-    Metadata.set(metadata);
     // Re-render Math.
     reRenderMath();
   };
@@ -527,7 +527,7 @@ export default function Bridge (root) {
     Storage
       .saveRevision(cnxmlContent, Comments.pull())
       .then(Storage.legacy)
-      .then(({classes}) => Storage.saveCnxml(cnxmlContent, Metadata.get(), classes));
+      .then(({classes}) => Storage.saveCnxml(cnxmlContent, classes));
     // Notify user.
     Messenger.success('Saving in progress. Wait for Legacy to reload...');
   };

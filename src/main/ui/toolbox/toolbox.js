@@ -12,8 +12,6 @@ const scaffold = `
       i.material-icons > "history"
     button[title="Comments" data-action="refs" data-index="3"]
       i.material-icons > "chat"
-    button[title="Metadata" data-action="refs" data-index="4"]
-      i.material-icons > "code"
 `;
 
 // ------------------------------------------------

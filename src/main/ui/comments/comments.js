@@ -166,7 +166,7 @@ export default (function Comments () {
     if (comments.length === 0) element.appendChild(empty);
     // Update current scope's commentsList.
     return comments.reduce((result, comment) => {
-      !commentsList.has(comment.id) && result.set(comment.id, { model: comment, ref: append(commentEl(comment)) });
+      !commentsList.has(comment.id) && result.set(comment.id, { model: comment, ref: append(commentEl(comment)) });      
       return result;
     }, commentsList);
   };

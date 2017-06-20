@@ -1,5 +1,5 @@
-import {cutString} from "../../../utilities/tools";
 import {createElement} from "../../../utilities/travrs";
+import {cutString, mergeTextNodes} from "../../../utilities/tools";
 
 // --------------------------------------------
 // ---- DIFF-COMMENTS CORE ------------
@@ -34,6 +34,7 @@ export const commentsToModel = (container) => {
   return comments;
 };
 
+
 // Restore comments from the newest version.
 export const markersToComments = (output, comments) => {
   Array.from(output.querySelectorAll('cm')).reverse().forEach(cm => {
@@ -41,6 +42,7 @@ export const markersToComments = (output, comments) => {
     const range = document.createRange();
     const quote = createElement(`quote[type="comment" display="inline" id="${model.id}"]`);
     range.setStartAfter(cm);
+    if (cm.nextSibling.textContent.length <= model.len) mergeTextNodes(cm.nextSibling);
     range.setEnd(cm.nextSibling, model.len);
     range.surroundContents(quote);
     cm.parentNode.removeChild(cm);

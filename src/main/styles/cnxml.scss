@@ -13,6 +13,16 @@ emphasis[effect="bold"] {
   font-weight: bold;
 }
 
+sup {
+    vertical-align: super;
+    font-size: smaller;
+}
+
+sub {
+    vertical-align: sub;
+    font-size: smaller;
+}
+
 // ---- Images ----------------
 
 div[data-type=figure] > div[data-type=title] p {

@@ -1,8 +1,9 @@
 import diff from "../../diff";
 import {toHTML} from "../../parser";
+import {mergeSameSiblings} from "../../diff/merge";
 import {commentsToModel} from "../comments/cmtools";
-import {emit, humanizeDate} from "../../../utilities/tools";
 import {template, createElement} from "../../../utilities/travrs";
+import {emit, humanizeDate, filterCMarkers} from "../../../utilities/tools";
 require('./revision.scss');
 
 // Component scaffold
@@ -76,7 +77,7 @@ export default (function Revision () {
     // Handle resolve issue.
     if (action && ~commands.indexOf(action)) {
 
-      // Replace current content with the diff-ied version of unsynchronized content.
+      // Replace current content with the diffed version of unsynchronized content.
       if (action === 'resolve')
         element.dispatchEvent(emit('replace', { revision: storage.silentRevision, label: 'Unsynchronized revision'}));
 
@@ -88,7 +89,7 @@ export default (function Revision () {
       refs.message.replaceChild(template(revisionWarning), refs.message.firstElementChild);
     }
 
-    // Replace current content with the diff-ied version of latest changes.
+    // Replace current content with the diffed version of latest changes.
     else if (action === 'diff')
       element.dispatchEvent(emit('replace', { revision: storage.latestChanges, label: 'Latest changes', date: storage.latestDate }));
   };
@@ -112,11 +113,11 @@ export default (function Revision () {
     // Set latest saved version (the current one).
     storage.currentVersion = revisions.slice(-1)[0];
 
-    // Check if content in Baridge Archive is synchronized with content in the Legacy.
+    // Check if content in Bridge Archive is synchronized with content in the Legacy.
     if (storage.currentVersion) {
       storage.silentRevision = diff(toHTML(storage.currentVersion.content), currentContent);
       // If conflicts were detected then display Error panel & exit.
-      if (!!storage.silentRevision.querySelector('del, ins'))
+      if (mergeSameSiblings(filterCMarkers(storage.silentRevision)).length > 0)
         return !refs.message.appendChild(template(revisionError));
     }
 
@@ -124,10 +125,11 @@ export default (function Revision () {
     if (!latest) {
       element.appendChild(createElement('div.cnxb-empty', 'No revisions for this module'));
     }
-    // Button for recent changes
+    // Show button for displying recent changes.
     else {
       storage.latestDate = latest.date;
       storage.latestChanges = diff(toHTML(latest.content), currentContent);
+      mergeSameSiblings(filterCMarkers(storage.latestChanges));
       element.appendChild(template(revisionEntry(latest.date)));
     }
     // Return latest revision.
