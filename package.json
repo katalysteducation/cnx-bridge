@@ -1,6 +1,6 @@
 {
   "name": "cnx-bridge",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "UI Enhancement Layer for CNX Legacy Editor with revision control",
   "main": "build/manifest.json",
   "scripts": {
@@ -28,6 +28,7 @@
     "postcss-loader": "^1.2.1",
     "resolve-url-loader": "^1.6.1",
     "sass-loader": "^4.1.1",
+    "shorthash": "0.0.2",
     "style-loader": "^0.13.1",
     "webpack": "^1.14.0"
   },

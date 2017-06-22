@@ -117,7 +117,7 @@ export default function Select (root, editors) {
     return new Promise((resolve) => {
       if (!display) return;
       // Call 'select' method that is REQUIRED for the inlineEditors. -> display.select(content, range, elementReference);
-      display.select(content, range, event.target.dataset.select ? event.target : undefined);
+      display.select(content, range, event.target.dataset && event.target.dataset.select ? event.target : undefined);
       // Resolve promise with internal data.
       resolve({ editor, content, range, coords });
     });

@@ -281,3 +281,31 @@ export const Memo = (modifier, previous) => {
 
 export const copyAttrs = (from, to) =>
   Array.from(from.attributes).forEach(attr => to.setAttribute(attr.name, attr.value));
+
+
+// Cut from string from start to end index.
+export const cutString = (str, cutStart, cutEnd) => str.substring(0, cutStart) + str.substring(cutEnd + 1);
+
+
+// Filter Comment Markers from 'content'.
+export const filterCMarkers = (content) =>
+  Array.from(content.querySelectorAll('del, ins')).filter(diff => {
+    if (!diff.firstChild.tagName || !diff.firstChild.tagName === "CM") return true;
+    // Trim content to remove remaining spaces at the end.
+    diff.outerHTML = diff.innerHTML.trim();
+    return false;
+  });
+
+
+export const mergeTextNodes = (node) => {
+  let result = node.textContent;
+  let next = node.nextSibling;
+  let memo;
+  while (next && next.nodeType === 3) {
+    result += next.textContent;
+    memo = next.nextSibling;
+    next.parentNode.removeChild(next);
+    next = memo;
+  }
+  node.textContent = result;
+};

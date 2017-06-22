@@ -83,8 +83,10 @@ const saveInLegacy = (content, classes = '', root) => new Promise((resolve, reje
   // Fail if no UI to hook up.
   if (!textarea || !button) reject('Storage :: There is no Legacy UI to hook up -- no textarea OR save button');
   // Populate textarea with new CNXML.
-  textarea.value = textarea.value.replace(/<content>([\S\s\w]+)<\/content>/, content.replace('<content>', '<content>' + classes))
-  // .replace(/<metadata>([\S\s\w]+)<\/metadata>/, metadata.outerHTML );
+  textarea.value = textarea.value.replace(/<content>([\S\s\w]+)<\/content>/, content
+    .replace('<content>', '<content>' + classes))
+  // NOTE: Metadata sveing is not supported by the full-source-editing -- DEAD-END!
+  // .replace(/<metadata([\S\s\w]+)<\/metadata>/, metadata);
   // Start saving process in Legacy.
   button.click();
   // Finish.

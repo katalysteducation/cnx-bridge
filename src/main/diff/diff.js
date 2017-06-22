@@ -1,6 +1,6 @@
-import {diffHTML} from "./jsdiff";
+import jsdiff from "./jsdiff";
 import {createElement} from "../../utilities/travrs";
-import {moveNodes, wrapElement, b64EncodeUnicode} from "../../utilities/tools";
+import {moveNodes, b64EncodeUnicode} from "../../utilities/tools";
 
 
 // ---- DIFF-NODES HELPERS ----------------
@@ -23,7 +23,7 @@ const arrayCompare = (arrayA, arrayB) => {
 };
 
 // Move node from one tree to another acording to provided 'path'.
-const tansferNode = (node, path) => {
+const transferNodes = (node, path) => {
   const [element, index] = path.pop();
   const currentNode = node.children[index];
 
@@ -36,13 +36,13 @@ const tansferNode = (node, path) => {
     currentNode.parentNode.replaceChild(element.cloneNode(true), currentNode);
   // Else search deeper.
   else if (path.length > 0)
-    tansferNode(currentNode, path);
+    transferNodes(currentNode, path);
 };
 
 // Add removed nodes to
 const addRemoved = (node, container) => {
   const path = [];
-  const del = createElement('del[data-select="true" data-skip-merge="true"]');
+  const del = createElement('del[data-select="true" contenteditable="false"]');
   moveNodes(node, del);
   node.appendChild(del);
 
@@ -51,14 +51,13 @@ const addRemoved = (node, container) => {
     path.push([node, Array.from(node.parentNode.children).indexOf(node)]);
     node = node.parentNode;
   }
-  tansferNode(container, path);
+  transferNodes(container, path);
 };
 
 // Distinguish MathJax MATH from other nodes.
 const getNodeContent = (node) => {
   let content = node.outerHTML;
-  if (node.matches('span.cnxb-math'))
-    content = node.querySelector('script').textContent;
+  if (node.matches('span.cnxb-math')) content = node.querySelector('script').textContent;
   return content;
 };
 
@@ -74,53 +73,72 @@ const hashNode = (hashTable) => (node) => {
 };
 
 
+// Clean container from comments.
+const cleanCopy = (container, removeComments = false) => {
+  const clone = container.cloneNode(true);
+  removeComments
+    ? Array.from(clone.querySelectorAll('quote[type=comment]')).forEach(comment => comment.outerHTML = comment.innerHTML)
+    : Array.from(clone.querySelectorAll('quote[type=comment]')).forEach(comment => comment.outerHTML = `!#${comment.id}#! ${comment.innerHTML}`);
+  return clone;
+};
+
+
 // --------------------------------------------
 // ---- DIFF-NODES CORE ------------
 // ------------------------
 
-export default function diffNodes (oldSectionA, sectionB) {
+export default function diffNodes (oldSectionA, newSectionB) {
 
-    // Get copy to not destron oryginal.
-    const sectionA = oldSectionA.cloneNode(true);
-    // Set breakpoint id.
-    sectionA.id = 'root';
+  if (!oldSectionA instanceof HTMLElement || !newSectionB instanceof HTMLElement) throw "diff(A,B) params need to be HTMLElements";
 
-    // Create storage for inline nodes/math.
-    const complexNodes = {};
-    const hash = hashNode(complexNodes);
+  // Get copy to not destron oryginal.
+  const sectionA = cleanCopy(oldSectionA, true);
+  const sectionB = cleanCopy(newSectionB);
 
-    // Get all editable nodes from both versions.
-    const editablesA = domToMap(Array.from(sectionA.querySelectorAll('p[data-target=editable]')));
-    const editablesB = domToMap(Array.from(sectionB.querySelectorAll('p[data-target=editable]')));
+  // Set breakpoint id.
+  sectionA.id = 'root';
 
-    // Get element ids diff -> less computing than parsing tree.
-    const { same, added, removed } = arrayCompare(Object.keys(editablesA), Object.keys(editablesB));
+  // Create storage for inline nodes/math.
+  const complexNodes = {};
+  const hash = hashNode(complexNodes);
 
-    // console.log(same, added, removed ); // Debug.
+  // Get all editable nodes from both versions.
+  const editablesA = domToMap(Array.from(sectionA.querySelectorAll('p[data-target=editable]')));
+  const editablesB = domToMap(Array.from(sectionB.querySelectorAll('p[data-target=editable]')));
 
-    // Create output tree.
-    const output = sectionB.cloneNode(true);
-    const outputIds = domToMap(Array.from(output.querySelectorAll('p[data-target=editable]')));
+  // Get element ids diff -> less computing than parsing tree.
+  const { same, added, removed } = arrayCompare(Object.keys(editablesA), Object.keys(editablesB));
 
-    // Compare same nodes.
-    same.forEach(id => {
-      // Pull out non-text nodes and replace them with ID markers.
-      Array.from(editablesA[id].children).forEach(hash);
-      Array.from(editablesB[id].children).forEach(hash);
-      // Replace hashes with nodes.
-      outputIds[id].innerHTML = diffHTML(editablesA[id].innerHTML, editablesB[id].innerHTML).replace(/%#([\w\S\s]+?)#%/g, (match) => complexNodes[match]);
-    });
+  // console.log(same, added, removed ); // Debug.
 
-    // Handle added & remnoved nodes.
-    added.forEach(id => {
-      // wrapElement(outputIds[id], 'ins', { "data-skip-merge" : true })
-      const ins = createElement('ins[data-select="true" data-skip-merge="true"]');
-      moveNodes(outputIds[id], ins);
-      outputIds[id].appendChild(ins);
-    });
+  // Create output tree.
+  const output = sectionB.cloneNode(true);
+  const outputIds = domToMap(Array.from(output.querySelectorAll('p[data-target=editable]')));
 
-    removed.forEach(id => addRemoved(editablesA[id], output));
+  // Compare same nodes.
+  same.forEach(id => {
 
-    // Return new Editable tree.
-    return output;
-  };
+    // Pull out non-text nodes and replace them with ID markers.
+    Array.from(editablesA[id].children).forEach(hash);
+    Array.from(editablesB[id].children).forEach(hash);
+
+    outputIds[id].innerHTML = jsdiff(editablesA[id].innerHTML, editablesB[id].innerHTML)
+      // Restore Complex Nodes.
+      .replace(/%#([\w\S\s]+?)#%/g, (match) => complexNodes[match])
+      // Replace commnet ids with commnet-markers <cm/>
+      .replace(/!#([A-Za-z0-9-_\.]+?)#!/g, (a, match) => `<cm id="${match}"><i class="material-icons">chat</i></cm>`);
+  });
+
+  // Handle added nodes.
+  added.forEach(id => {
+    const ins = createElement('ins[data-select="true" contenteditable="false"]');
+    moveNodes(outputIds[id], ins);
+    outputIds[id].appendChild(ins);
+  });
+
+  // Handle remnoved nodes.
+  removed.forEach(id => addRemoved(editablesA[id], output));
+
+  // Return new Editable tree.
+  return output.firstElementChild;
+};

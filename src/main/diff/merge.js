@@ -1,4 +1,4 @@
-import { getNodesOut } from "../../utilities/tools";
+import {getNodesOut} from "../../utilities/tools";
 
 // ---- MERGE TOOLS ----------------
 
@@ -18,11 +18,10 @@ export const mergeSameSiblings = (list) =>
     return result;
   },[]);
 
-
 // Chek if node is onlu child.
 const isOnlyChild = (node) => !node.nextElementSibling && !node.prevElementSibling;
 
-
+// Determine if nod can be removed.
 const isNodeToRemove = (node) => node.childNodes.length === 0 || node.tagName === 'DEL' || node.tagName === 'INS';
 
 // Remove tree branch.

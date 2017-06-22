@@ -1,6 +1,9 @@
-import Messenger from "../messenger";
-import {emit, humanizeDate} from "../../../utilities/tools";
+import diff from "../../diff";
+import {toHTML} from "../../parser";
+import {mergeSameSiblings} from "../../diff/merge";
+import {commentsToModel} from "../comments/cmtools";
 import {template, createElement} from "../../../utilities/travrs";
+import {emit, humanizeDate, filterCMarkers} from "../../../utilities/tools";
 require('./revision.scss');
 
 // Component scaffold
@@ -49,29 +52,36 @@ export default (function Revision () {
   // Create UI element.
   const element = template(refs, scaffold);
 
-  // Latest revision.
+  // Revision storage.
   const storage = {
+    // Date of latest revisoin.
     latestDate: undefined,
+    // Diffi from latest version & current content.
     latestChanges: undefined,
+    // Last saved revision in Bridge Archive.
     currentVersion: undefined,
-    silentRevision: undefined,
+    // Diffi from unsync. version & current content.
+    silentRevision: undefined
   };
 
   // Error command list.
   const commands = ['resolve', 'cancel', 'restore'];
 
-  // Run user action.
+  /**
+   * Run action according to user choice.
+   * @param  {Event}  event Click event on UI element.
+   */
   const detectAction = (event) => {
     const action = event.target.dataset.action;
 
     // Handle resolve issue.
     if (action && ~commands.indexOf(action)) {
 
-      // Replace Content.
+      // Replace current content with the diffed version of unsynchronized content.
       if (action === 'resolve')
         element.dispatchEvent(emit('replace', { revision: storage.silentRevision, label: 'Unsynchronized revision'}));
 
-      // Replace Content with last version stored in BAD.
+      // Replace Content with last version stored in Bridge Archive.
       else if (action === 'restore')
         element.dispatchEvent(emit('display', { revision: storage.currentVersion, label: 'Restored revision', date: storage.currentVersion.date }));
 
@@ -79,45 +89,51 @@ export default (function Revision () {
       refs.message.replaceChild(template(revisionWarning), refs.message.firstElementChild);
     }
 
-    // Compare current version with previous revision.
+    // Replace current content with the diffed version of latest changes.
     else if (action === 'diff')
       element.dispatchEvent(emit('replace', { revision: storage.latestChanges, label: 'Latest changes', date: storage.latestDate }));
   };
 
-
   // Add listeners.
   element.addEventListener('click', detectAction);
 
+
   // ---- API METHODS ----------------
 
-  // Setup revision panel.
-  const setup = (revisions, comparator) => {
+  /**
+   * Set Revision panel to proper state.
+   * @param  {Object}   revisions          Collection of all revisoins in Bridge Archive.
+   * @param  {HTMLElement} currentContent  Reference to currently displayed content.
+   * @return {Boolean}                     isSynchronized flag.
+   */
+  const setup = (revisions, currentContent) => {
     const revisionsLength = revisions.length;
     const latest = revisionsLength > 1 ? revisions[revisionsLength - 2] : undefined;
 
     // Set latest saved version (the current one).
     storage.currentVersion = revisions.slice(-1)[0];
 
-    // Check if Baridge's Archive is synchronized with the Legacy.
+    // Check if content in Bridge Archive is synchronized with content in the Legacy.
     if (storage.currentVersion) {
-      storage.silentRevision = comparator(storage.currentVersion.content, true);
-      // Detectc conflicts.
-      if (!!storage.silentRevision.querySelector('del, ins'))
-        return refs.message.appendChild(template(revisionError));
+      storage.silentRevision = diff(toHTML(storage.currentVersion.content), currentContent);
+      // If conflicts were detected then display Error panel & exit.
+      if (mergeSameSiblings(filterCMarkers(storage.silentRevision)).length > 0)
+        return !refs.message.appendChild(template(revisionError));
     }
 
     // Message for no-revisions.
     if (!latest) {
       element.appendChild(createElement('div.cnxb-empty', 'No revisions for this module'));
     }
-    // Button for recent changes
+    // Show button for displying recent changes.
     else {
       storage.latestDate = latest.date;
-      storage.latestChanges = comparator(latest.content, true);
+      storage.latestChanges = diff(toHTML(latest.content), currentContent);
+      mergeSameSiblings(filterCMarkers(storage.latestChanges));
       element.appendChild(template(revisionEntry(latest.date)));
     }
     // Return latest revision.
-    return latest;
+    return !!latest;
   };
 
   // Public API.

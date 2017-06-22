@@ -1,6 +1,7 @@
 import {commentEl, responseEl} from "./templates";
-import {emit, date, Memo} from "../../../utilities/tools";
+import {commentsToModel, markersToComments} from "./cmtools";
 import {template, createElement} from "../../../utilities/travrs";
+import {emit, date, Memo, arrayCompare} from "../../../utilities/tools";
 require('./comments.scss');
 
 // Component scaffold
@@ -18,12 +19,16 @@ export default (function Comments () {
   const element = template(scaffold);
   const commentsList = new Map();
   const userData = {};
+  let commentsModel;
 
   // Create empty placeholder.
   let empty = element.appendChild(createElement('div.cnxb-empty', 'No comments for this revision'));
   element.appendChild(empty);
 
-  // Active elements' toggler.
+  /**
+   * Add/Remove 'active' class to selected/deselected element.
+   * @type {Memo}
+   */
   const active = new Memo((current, active) => {
     if (active) active.classList.remove('active');
     if (active !== current) {
@@ -43,7 +48,11 @@ export default (function Comments () {
     return comment;
   };
 
-  // Detect user's action.
+
+  /**
+   * Run action according to user's choice.
+   * @param  {Event}  event Click event.
+   */
   const detectAction = (event) => {
     const {response, cancel, close, scroll} = event.target.dataset;
 
@@ -92,15 +101,25 @@ export default (function Comments () {
   // Set event listener.
   element.addEventListener('click', detectAction);
 
+
   // ---- API METHODS ----------------
 
-  // Set user data.
+  /**
+   * Set user's data required to populate comment DB schema.
+   * @param  {String} user   User name.
+   * @param  {String} avatar User selected color.
+   */
   const user = ({user, avatar}) => {
     userData.user = user;
     userData.avatar = avatar;
   };
 
-  // Add new comment.
+
+  /**
+   * Add new comment to the current scope.
+   * @param {String} id      Commnet ID.
+   * @param {String} content Commnet's content.
+   */
   const add = (id, content) => {
     const model = {
       id,
@@ -113,10 +132,20 @@ export default (function Comments () {
     commentsList.set(id, { model, ref: append(commentEl(model)) });
   };
 
-  // Get all comments.
-  const pull = () => Array.from(commentsList.values()).map(comment => comment.model);
 
-  // Select Coment by its id, and set it active.
+  /**
+   * Get list of commnets for current scope, matches Bridge Archive DB structure.
+   * @return {Array} List of comments.
+   */
+  const pull = () =>
+    Array.from(commentsList.values()).map(comment => comment.model);
+
+
+  /**
+   * Select Coment by its ID, and set it active.
+   * @param  {String} id   Comment ID.
+   * @return {HTMLElement} Reference to the comment node.
+   */
   const select = (id) => {
     const comment = element.querySelector(`div[data-comment-id="${id}"]`);
     if (!comment) return;
@@ -124,35 +153,30 @@ export default (function Comments () {
     return comment;
   };
 
-  // Add comment from list to the display.
-  const fill = (list = []) => {
-    const final = list.reduce((result, comment) => {
-      if (!commentsList.has(comment.id)) result.set(comment.id, { model: comment, ref: append(commentEl(comment)) });
-      return result;
-    }, commentsList);
-    if (list.length === 0) element.appendChild(empty);
-    return final;
-  }
 
-  // Remove comments present on the 'list'.
-  const remove = (list) => {
-    list.forEach(id => {
-      const comment = commentsList.get(id);
-      if (comment) {
-        comment.ref.parentNode.removeChild(comment.ref);
-        commentsList.delete(id);
-      }
-    });
-  };
-
-  // Replace existing comments with new list.
-  const replace = (list) => {
+  /**
+   * Set commnet for current revision.
+   * @param {Array} comments List of comment in revision.
+   * @return {Map}           Map with comments in current scope.
+   */
+  const set = (comments) => {
     commentsList.clear();
     element.innerHTML = '';
-    return fill(list);
+    // Display empty placeholder.
+    if (comments.length === 0) element.appendChild(empty);
+    // Update current scope's commentsList.
+    return comments.reduce((result, comment) => {
+      !commentsList.has(comment.id) && result.set(comment.id, { model: comment, ref: append(commentEl(comment)) });      
+      return result;
+    }, commentsList);
   };
 
-  // Create searching function to detect which Comments from 'contentElement' are available in last revisoin.
+
+  /**
+   * Create searching function to detect which Comments from 'contentElement' are available in last revisoin.
+   * @param  {HTMLElement} contentElement Content element
+   * @return {function}   Function that takes all revisoins, slice latest and detect commnets.
+   */
   const find = (contentElement) => (revisoins) => {
     if (!Array.isArray(revisoins)) revisoins = [revisoins];
     // Get last revision.
@@ -161,10 +185,69 @@ export default (function Comments () {
     if (!lastRevision) return;
     // Detect comments in content.
     const ids = Array.from(contentElement.querySelectorAll('quote[type=comment]')).map((comment) => comment.id);
-    // Repalce ony existing comments.
-    replace(lastRevision.comments.filter((comment) => ~ids.indexOf(comment.id)));
+    // Repalce only existing comments.
+    set(lastRevision.comments.filter((comment) => ~ids.indexOf(comment.id)));
   };
 
+  /**
+   * Check if comments in 'container' matches those in 'commentsList' and remove missmatches.
+   * @param  {HTMLElement} container Reference to the element with comments.
+   */
+  const unify = (container) => {
+    const {added, removed} = arrayCompare (
+      Array.from(commentsList.keys()),
+      Array.from(container.querySelectorAll('quote[type=comment]')).map(comment => comment.id)
+    );
+
+    // IDs missing in content -> remove from the 'commentsList'.
+    removed.forEach(id => {
+      const comment = commentsList.get(id);
+      comment.ref.parentNode.removeChild(comment.ref);
+      commentsList.delete(id);
+    });
+
+    // IDs missing in comments -> remove from the 'container'.
+    added.forEach(id => {
+      const ref = container.querySelector(`quote[id="${id}"]`);
+      ref.parentNode.removeChild(ref);
+    });
+  };
+
+  /**
+   * Restotres comments after merge operation.
+   * @param  {HTMLElement} container Containert where comments shpuld be restored.
+   */
+  const restore = (container) => (markersToComments(container, commentsModel), unify(container));
+
+
+  /**
+   * Create commnets model for the source DOM tree.
+   * @param  {HTMLElement} container Reference to the element containing commnets tags (quote[type=comment]).
+   */
+  const model = (container) => commentsModel = commentsToModel(container);
+
+
   // Pubic API.
-  return { element, user, add, pull, fill, find, remove, replace, select };
+  return {
+    // Reference to the UI element.
+    element,
+    // Set user's data.
+    user,
+    // Display only those commnets that match current content.
+    find,
+    // Set comments for current revision.
+    set,
+    // Add new commnet to current scope.
+    add,
+    // Get all commnets from current scope.
+    pull,
+    // Find and set 'active' class to the comment with given ID.
+    select,
+    // Restore commenst after merge.
+    restore,
+    // Create commnets model for current content.
+    model,
+    // Compare Content coments with 'commentsModel' and remove missmatches.
+    unify
+  };
 }());

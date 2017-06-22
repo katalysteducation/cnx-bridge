@@ -19,7 +19,7 @@ function escape(s) {
     return n;
 }
 
-export const diffHTML = (o, n) => {
+export default function diffHTML (o, n) {
   o = o.replace(/\s+$/, '');
   n = n.replace(/\s+$/, '');
 

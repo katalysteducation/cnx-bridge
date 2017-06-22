@@ -7,15 +7,7 @@ import {createElement} from "../../utilities/travrs";
 const cleanMath = (source) => {
   Array.from(source.querySelectorAll('span.glass')).forEach(element => {
     const parent = element.parentNode;
-    parent.insertBefore(
-      document.createRange().createContextualFragment(
-        element.querySelector('script')
-          .textContent
-          // Add MathML namespace.
-          .replace(/<math/g, (match) => '<math xmlns="http://www.w3.org/1998/Math/MathML"')
-      ),
-      element
-    );
+    parent.insertBefore(document.createRange().createContextualFragment(element.querySelector('script').textContent), element);
     parent.removeChild(element);
   });
   return source;
@@ -76,6 +68,10 @@ const transformComments = (node) => {
   node.removeAttribute('class');
 };
 
+// Add namespace for math elements.
+const transformMath = (node) =>
+  node.setAttribute('xmlns', 'http://www.w3.org/1998/Math/MathML');
+
 
 // --------------------------------------------
 // ---- TO CNXML ----------------
@@ -104,11 +100,13 @@ export default function toCnxml (htmlNode) {
   Array.from(cnxml.querySelectorAll('quote[type=comment]')).forEach(transformComments);
   Array.from(cnxml.querySelectorAll('reference')).forEach(transformRefs);
   Array.from(cnxml.querySelectorAll('term')).forEach(transformTerms);
+  Array.from(cnxml.querySelectorAll('math')).forEach(transformMath);
+
 
   // Return final CNXML.
   return serializer.serializeToString(cnxml)
     // Remove unecesery xml namesapces form CNXML elements & &nbsp; -> Leftovers from parsing & editing.
-    .replace(/\s*xmlns="[\s\S\w]+?xhtml"/g, '')
+    .replace(/(xmlns="http:\/\/www\.w3\.org\/1999\/xhtml")|(&nbsp;) /g, '')
     // Remove conetnt from <newline>NL</newline> tag.
     .replace(/<newline>NL<\/newline>/g, '<newline/>');
 };
