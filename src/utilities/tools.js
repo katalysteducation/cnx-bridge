@@ -6,9 +6,11 @@ export const getContent = (cnxml) => cnxml
   // Remove <?cnx.?> tags.
   .replace(/<\?cnx([\s\S\w]+?)\?>/g, '');
 
+
 // Get <metadata> tag from CNXML.
 export const getMetadata = (cnxml) =>
   cnxml.slice(cnxml.indexOf('<metadata'), cnxml.indexOf('<\/metadata>') + 11);
+
 
 // Get <?cnx.?> tag from CNXML content.
 export const getClasses = (cnxml) => {
@@ -17,32 +19,16 @@ export const getClasses = (cnxml) => {
   return result.join('');
 };
 
-// Wrap 'elements' with HTMLElement of given 'type' with provided 'attrs'.
-// EXAMPLE: wrapElement(node, 'del', { "data-skip-merge" : true });
-export const wrapElement = (elements, type, attrs) => {
-  if (!Array.isArray(elements)) elements = [elements];
-  const parent = elements[0].parentNode;
 
-  if (parent) {
-    const wrapper = document.createElement(type);
-    parent.insertBefore(wrapper, elements[0]);
-    elements.forEach(node => wrapper.appendChild(node));
-    attrs && Object.keys(attrs).forEach(name => wrapper.setAttribute(name, attrs[name]));
-    return wrapper;
-  }
-};
+// Extrac CNXML metadata leaving only content
+export const stripMetadata = (cnxml) =>
+  cnxml.slice(cnxml.indexOf('<content>') + 9, cnxml.indexOf('<\/content>'));
 
-// Genrate 32bit integer from given string.
-export const hash32 = (s) => {
-  let h = 0, strlen = s.length, i, c;
-  if ( strlen === 0 ) return h;
-  for (i = 0; i < strlen; i++) {
-    c = s.charCodeAt(i);
-    h = ((h << 5) - h) + c;
-    h |= 0; // Convert to 32bit integer
-  }
-  return h;
-};
+
+// Cut from string from start to end index.
+export const cutString = (str, cutStart, cutEnd) =>
+  str.substring(0, cutStart) + str.substring(cutEnd + 1);
+
 
 // Inject SCRIPT tag into webpage.
 export const injectScript = (name, isExternal, callback) => {
@@ -52,20 +38,16 @@ export const injectScript = (name, isExternal, callback) => {
     script.removeEventListener('load', onLoad);
     callback();
   }
-
   if (typeof isExternal === 'function') {
     callback = isExternal;
     isExternal = false;
   }
-
   if (callback) {
     script.addEventListener('load', onLoad);
   }
-
   script.setAttribute('src', isExternal ? name : chrome.extension.getURL(name));
   document.head.appendChild(script);
 };
-
 
 // Inject STYLE tag into webpage.
 export const injectStyle = (url) => {
@@ -74,7 +56,6 @@ export const injectStyle = (url) => {
   link.setAttribute('href', url);
   document.head.appendChild(link);
 };
-
 
 // ---- Helps with event delegation --------------------
 // USAGE:
@@ -104,29 +85,74 @@ export const eventDelegate = (selector, event, callback, context = document) => 
 };
 
 
-// ---- Swap arrays elements ---------------------------
-export const swapItems = (array, indexA, indexB) => {
-  let buffer = array[indexA];
-  array[indexA] = array[indexB];
-  array[indexB] = buffer;
+// Selects whole word even if only one letter is selected.
+const selectWord = () => {
+  const selection = window.getSelection();
+  if (!selection.isCollapsed) {
+    // Detect if selection is backwards
+    const range = document.createRange();
+    range.setStart(selection.anchorNode, selection.anchorOffset);
+    range.setEnd(selection.focusNode, selection.focusOffset);
+    // range.collapsed === true then it is backwards.
+    const direction = range.collapsed ? ['backward', 'forward'] : ['forward', 'backward'];
+    range.detach();
+
+    // modify() works on the focus of the selection.
+    const endNode = selection.focusNode;
+    const endOffset = selection.focusOffset;
+    selection.collapse(selection.anchorNode, selection.anchorOffset);
+
+    // Extend selection.
+    selection.modify("move", direction[0], "character");
+    selection.modify("move", direction[1], "word");
+    selection.extend(endNode, endOffset);
+    selection.modify("extend", direction[1], "character");
+    selection.modify("extend", direction[0], "word");
+  }
+};
+
+// Extend current selection to wrap around whole words.
+// It also provides a threshold to prevent double click to select more than one word.
+export const selectWholeWords = ((select,threshold) => {
+  let last, deferTimer;
+  return () => {
+    const now = +new Date;
+    if (last && now < last + threshold) {
+      clearTimeout(deferTimer);
+      deferTimer = setTimeout(() => last = now, threshold);
+    } else {
+      last = now;
+      select();
+    }
+  }
+})(selectWord, 250);
+
+
+// Create CNXBridge unique ID from date.
+export const uid = () =>
+  'cnxb-' + ((+new Date) + Math.random()* 100).toString(32);
+
+
+// Genrate 32bit integer from given string.
+export const hash32 = (s) => {
+  let h = 0, strlen = s.length, i, c;
+  if ( strlen === 0 ) return h;
+  for (i = 0; i < strlen; i++) {
+    c = s.charCodeAt(i);
+    h = ((h << 5) - h) + c;
+    h |= 0; // Convert to 32bit integer
+  }
+  return h;
 };
 
 
-// ---- Create CNXBridge unique ID from date -----------------
-export const uid = () => {
-  return 'cnxb-' + ((+new Date) + Math.random()* 100).toString(32);
-};
+// Shorthand for creating DOM events.
+export const emit = (name, detail) =>
+  new CustomEvent(name, { detail, bubbles: true });
 
 
-// ---- Shorthand for creating DOM events ------------
-export const emit = (name, detail) => {
-  return new CustomEvent(name, { detail, bubbles: true });
-};
-
-
-// ---- Return current date in user friendly format --
+// Return current date in user friendly format.
 export const date = (dateA, operator, dateB) => {
-
   const dateNow = (withTime = false) => {
     const date = new Date();
     const time = ' ' + ("0" + date.getHours()).slice(-2) + ':' + ("0" + date.getMinutes()).slice(-2) + ':' + ("0" + date.getSeconds()).slice(-2);
@@ -146,16 +172,14 @@ export const date = (dateA, operator, dateB) => {
       _dateA.getTime() < _dateB.getTime():
       undefined;
   };
-
   return typeof dateA === 'string' ? compareDates(dateA, operator, dateB) : dateNow(dateA);
 };
 
-// List of Polish months in proper form.
-const miesiace = ['stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca', 'lipca', 'sierpnia', 'września', 'paździerika', 'lsitopada', 'grudnia']
 
+// List of Polish months in proper form.
+const miesiace = ['stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca', 'lipca', 'sierpnia', 'września', 'paździerika', 'lsitopada', 'grudnia'];
 // List of months in English.
 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-
 // Chagne date to more human-readable format.
 export const humanizeDate = (timestamp) => {
   const [date, time] = timestamp.split(' ');
@@ -164,6 +188,90 @@ export const humanizeDate = (timestamp) => {
 };
 
 
+// Encode Base 64
+export const b64EncodeUnicode = (str) =>
+  btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) =>
+    String.fromCharCode('0x' + p1)
+  ));
+
+
+// Decode Base 64
+export const b64DecodeUnicode = (str) =>
+  decodeURIComponent(Array.prototype.map.call(atob(str), (c) =>
+    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+  ).join(''));
+
+
+// Ceate dom element from string.
+export const elFromString = (source) =>
+  document.createRange().createContextualFragment(source);
+
+
+// Copy arributes 'from' one element 'to' another.
+export const copyAttrs = (from, to) =>
+  Array.from(from.attributes).forEach(attr => to.setAttribute(attr.name, attr.value));
+
+
+// Convert element attributes to object.
+export const attrsToObject = (element) =>
+  Array.from(element.attributes).reduce((meta, attr) => {
+    meta[attr.name] = attr.value;
+    return meta;
+  }, {});
+
+
+// Convert value into Object.
+export const valueToObject = (value) =>
+  typeof value === 'string' ? JSON.parse(value) : value;
+
+
+// Compare two arrays & return compare object.
+export const arrayCompare = (arrayA, arrayB) => {
+  return {
+    added: arrayB.filter(el => !~arrayA.indexOf(el)),
+    removed: arrayA.filter(el => !~arrayB.indexOf(el))
+  };
+};
+
+
+// Swap arrays elements at given indexes.
+export const swapItems = (array, indexA, indexB) => {
+  let buffer = array[indexA];
+  array[indexA] = array[indexB];
+  array[indexB] = buffer;
+};
+
+
+// Modifier function with memory.
+export const Memo = (modifier, previous) => {
+  if (typeof modifier !== 'function') throw "Modifier need to be a function.";
+  return (current) => {
+    //NOTE: To memoize previous value you need to return it from the 'modifier'.
+    previous = modifier(current, previous);
+    return previous;
+  }
+};
+
+// Wrap 'elements' with HTMLElement of given 'type' with provided 'attrs'.
+// EXAMPLE: wrapElement(node, 'del', { "data-skip-merge" : true });
+export const wrapElement = (elements, type, attrs) => {
+  if (!Array.isArray(elements)) elements = [elements];
+  const parent = elements[0].parentNode;
+
+  if (parent) {
+    const wrapper = document.createElement(type);
+    parent.insertBefore(wrapper, elements[0]);
+    elements.forEach(node => wrapper.appendChild(node));
+    attrs && Object.keys(attrs).forEach(name => wrapper.setAttribute(name, attrs[name]));
+    return wrapper;
+  }
+};
+
+// Move nodes 'from' node 'to' node.
+export const moveNodes = (from, to) => {
+  while(from.childNodes.length > 0) to.appendChild(from.firstChild);
+  return to;
+};
 
 // Applies children nodes from 'current' before 'current'.
 export const getNodesOut = (current) => {
@@ -176,119 +284,38 @@ export const getNodesOut = (current) => {
   }
 };
 
-// Encode Base 64
-export const b64EncodeUnicode = (str) =>
-  btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) =>
-    String.fromCharCode('0x' + p1)
-  ));
-
-// Decode Base 64
-export const b64DecodeUnicode = (str) =>
-  decodeURIComponent(Array.prototype.map.call(atob(str), (c) =>
-    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-  ).join(''));
-
-
-// CNXML Update function.
-export const updateCnxmlContent = (cnxml) => (content) =>
-  cnxml.slice(0, cnxml.indexOf('<content>') + 9)
-  + content +
-  cnxml.slice(cnxml.indexOf('<\/content>', cnxml.lenght))
-  .replace(/\n/gm, '');
-
-
-// Extrac CNXML metadata leaving only content
-export const stripMetadata = (cnxml) =>
-  cnxml.slice(cnxml.indexOf('<content>') + 9, cnxml.indexOf('<\/content>'));
-
-// Ceate dom element from string.
-export const elFromString = (source) =>
-  document.createRange().createContextualFragment(source);
-
-
-// Convert element attributes to object.
-export const attrsToObject = (element) =>
-  Array.from(element.attributes).reduce((meta, attr) => {
-    meta[attr.name] = attr.value;
-    return meta;
-  }, {});
-
-
-// If content contains attributes strip them out and leave only the values.
-// return object with pairs -> { modelName : value }.
-export const contentToValues = (content) => {
-  const model = JSON.parse(content);
-  return Object.keys(model).reduce((result, name) => {
-     result[name] = (model[name].value ? model[name].value : model[name]);
-     return result;
-   }, {});
+// Crop Out 'node' from its parent. Spltiting parentNode where tehe 'node' aprears.
+const cropOutNode = (node) => {
+  const range = document.createRange();
+  const parent = node.parentNode;
+  range.setStartBefore(parent.firstChild);
+  range.setEndBefore(node);
+  range.surroundContents(parent.cloneNode());
+  range.setStartAfter(node);
+  range.setEndAfter(parent.lastChild);
+  range.surroundContents(parent.cloneNode());
+  getNodesOut(parent);
+  parent.parentNode.removeChild(parent);
 };
 
-// Convert string values to Objects.
-export const strToObject = (value) =>
-  typeof value === 'string' ? JSON.parse(value) : value;
+// Filter Comment Markers from 'content'. VERSION-2.
+// export const pullAllDiffs = (content) => {
+//   Array.from(content.querySelectorAll('cm')).forEach(cm => {
+//     if (cm.parentNode.firstChild === cm) {
+//       // Trim content to remove remaining spaces at the end.
+//       cm.parentNode.outerHTML = cm.parentNode.innerHTML.trim();
+//     }
+//     else if (cm.parentNode.tagName === "DEL" || cm.parentNode.tagName === "INS") {
+//       cropOutNode(cm);
+//       // Trim trailing begining space left after comments is crop out.
+//       cm.nextElementSibling.firstChild.textContent = cm.nextElementSibling.firstChild.textContent.substring(1);
+//     }
+//   });
+//   return Array.from(content.querySelectorAll('del, ins'));
+// }
 
-
-// Convert array to object assigning elemtnt to name from element[key].
-export const arrayToObject = (array, key) =>
-  array.reduce((result, element) => {
-    result[element[key]] = element;
-    return result;
-  }, {});
-
-// Convert component-state object to diff-object.
-export const stateToDiffs = (state) =>
-  Object.keys(state).reduce((result, name) => {
-    result[name] = state[name].value
-    return result;
-  }, {});
-
-// Compare two arrays.
-export const arrayCompare = (arrayA, arrayB) => {
-  return {
-    added: arrayB.filter(el => !~arrayA.indexOf(el)),
-    removed: arrayA.filter(el => !~arrayB.indexOf(el))
-  };
-};
-
-
-export const revisionToObject = (revision) => {
-  return {
-    ...revision,
-    comments: JSON.parse(revision.comments),
-    content: revision.content.map(element => {
-      return { ...element, state: JSON.parse(element.state)};
-    })
-  };
-};
-
-
-// Move nodes 'from' node 'to' node.
-export const moveNodes = (from, to) => {
-  while(from.childNodes.length > 0) to.appendChild(from.firstChild);
-  return to;
-};
-
-// Modifier function with memory.
-export const Memo = (modifier, previous) => {
-  if (typeof modifier !== 'function') throw "Modifier need to be a function.";
-  return (current) => {
-    //NOTE: To memoize previous value you need to return it from the 'modifier'.
-    previous = modifier(current, previous);
-    return previous;
-  }
-};
-
-export const copyAttrs = (from, to) =>
-  Array.from(from.attributes).forEach(attr => to.setAttribute(attr.name, attr.value));
-
-
-// Cut from string from start to end index.
-export const cutString = (str, cutStart, cutEnd) => str.substring(0, cutStart) + str.substring(cutEnd + 1);
-
-
-// Filter Comment Markers from 'content'.
-export const filterCMarkers = (content) =>
+// Filter Comment Markers from 'content'. VERSION-1.
+export const pullAllDiffs = (content) =>
   Array.from(content.querySelectorAll('del, ins')).filter(diff => {
     if (!diff.firstChild.tagName || !diff.firstChild.tagName === "CM") return true;
     // Trim content to remove remaining spaces at the end.
@@ -296,7 +323,7 @@ export const filterCMarkers = (content) =>
     return false;
   });
 
-
+// Merge sibling text nodes.
 export const mergeTextNodes = (node) => {
   let result = node.textContent;
   let next = node.nextSibling;

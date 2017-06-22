@@ -25,8 +25,8 @@ import diff from "../diff";
 import {toHTML, toCNXML} from "../parser";
 import PubSub from "../../utilities/pubsub";
 import {template, createElement} from "../../utilities/travrs";
-import {uid, date, getNodesOut, Memo} from "../../utilities/tools";
 import {rejectAllChanges, acceptAllChanges, mergeSameSiblings} from "../diff/merge";
+import {uid, date, getNodesOut, Memo, pullAllDiffs, selectWholeWords} from "../../utilities/tools";
 
 require('../styles/bridge.scss');
 
@@ -169,11 +169,15 @@ export default function Bridge (root) {
   // to not interfere with reorder functionality.
   const select = new Select(contentPanels.view, state.editors);
 
+
   // Filter what can be selected by Inine Edutors.
   const selectEditable = (event) => {
     const editable = event.target.closest('p[data-target=editable][contenteditable=true]');
     // Allow for selecting: Ediitable containers, Diff markesr & Math wrappers.
-    if ((editable) || event.target.matches('del, ins, span[data-select=math]')) select.onContentSelected(event)//.then(onInlineEditorOpen);
+    if ((editable) || event.target.matches('del, ins, span[data-select=math]')){
+      selectWholeWords();
+      select.onContentSelected(event);
+     }
     else select.dismiss();
   };
 
@@ -386,13 +390,7 @@ export default function Bridge (root) {
     // Compare revision (old content) with current (new) content.
     Content.set(diff(toHTML(revision.content), Content.element));
     // Unwrap comment Markers and merge diff tags.
-    const merged = mergeSameSiblings(Array.from(Content.element.querySelectorAll('del, ins')).filter(diff => {
-      if (!diff.firstChild.tagName || !diff.firstChild.tagName === "CM") return true;
-      // Trim content to remove remaining spaces at the end.
-      diff.outerHTML = diff.innerHTML.trim();
-      return false;
-    }));
-
+    const merged = mergeSameSiblings(pullAllDiffs(Content.element));
     // In case there is no confilct to resolve - end merging process.
     if (merged.length === 0) onConflictResolve();
 

@@ -102,7 +102,7 @@ export default function Select (root, editors) {
     const selectionText = range.toString();
 
     // If selection contain end-sapce (double-click on word in Widnows) remove it from selection.
-    if (~selectionText.slice(-1).search(/\s/)) range.setEnd(range.endContainer, range.endOffset - 1);
+    if (/\s/.test(selectionText.slice(-1))) selection.modify('extend', 'backward', 'character');
 
     // If selection is on node with 'data-select' attribute. Select whole node.
     if (event.target.dataset && event.target.dataset.select) range.selectNode(event.target);

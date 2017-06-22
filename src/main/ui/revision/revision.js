@@ -3,7 +3,7 @@ import {toHTML} from "../../parser";
 import {mergeSameSiblings} from "../../diff/merge";
 import {commentsToModel} from "../comments/cmtools";
 import {template, createElement} from "../../../utilities/travrs";
-import {emit, humanizeDate, filterCMarkers} from "../../../utilities/tools";
+import {emit, humanizeDate, pullAllDiffs} from "../../../utilities/tools";
 require('./revision.scss');
 
 // Component scaffold
@@ -117,7 +117,7 @@ export default (function Revision () {
     if (storage.currentVersion) {
       storage.silentRevision = diff(toHTML(storage.currentVersion.content), currentContent);
       // If conflicts were detected then display Error panel & exit.
-      if (mergeSameSiblings(filterCMarkers(storage.silentRevision)).length > 0)
+      if (mergeSameSiblings(pullAllDiffs(storage.silentRevision)).length > 0)
         return !refs.message.appendChild(template(revisionError));
     }
 
@@ -129,7 +129,7 @@ export default (function Revision () {
     else {
       storage.latestDate = latest.date;
       storage.latestChanges = diff(toHTML(latest.content), currentContent);
-      mergeSameSiblings(filterCMarkers(storage.latestChanges));
+      mergeSameSiblings(pullAllDiffs(storage.latestChanges));
       element.appendChild(template(revisionEntry(latest.date)));
     }
     // Return latest revision.
