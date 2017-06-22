@@ -126,7 +126,7 @@ export default function Bridge (root) {
     if (event.altKey && event.key === 'u')
       Storage.config.then(console.log);
 
-    // Alt + c -> Show all coments.
+    // Alt + c -> Log all coments.
     if (event.altKey && event.key === 'c')
       console.log(JSON.stringify({comments: Comments.pull()}));
 
@@ -134,15 +134,30 @@ export default function Bridge (root) {
     if (event.altKey && event.key === 'q')
       Storage.clearModule().then(console.log);
 
-    // Alt + x -> Show current CNXML.
+    // Alt + x -> Log current CNXML.
     if (event.altKey && event.key === 'x') {
       rejectAllChanges(Array.from(Content.element.querySelectorAll('del, ins')));
       console.log(toCNXML(Content.pull()));
     }
 
-    // Alt + m -> Show test messahe
+    // Alt + Ctrl + r -> Restore Content Backup Copy.
+    if (event.altKey && event.ctrlKey && event.key === 'r')
+      Storage.restoreContent()
+        .then(response => {
+          Messenger.success('Content restored successfully');
+          reload();
+        })
+        .catch(response => Messenger.error(response.message));
+
+    // Alt + Ctrl + b -> Remove all `quote` wrappers & save module.
+    if (event.altKey && event.ctrlKey && event.key === 'b') save(true);
+
+    // Alt + m -> Message test.
     if (event.altKey && event.key === 'm') {
-      Messenger.info('You are trying to compare the same versions')
+      Messenger.success ('This is message', ()=>{}, 'OK', 'CANCEL');
+      Messenger.warn ('This is message', ()=>{}, 'OK', 'CANCEL');
+      Messenger.error ('This is message', ()=>{}, 'OK', 'CANCEL');
+      Messenger.info ('This is message', ()=>{}, 'OK', 'CANCEL');
     }
   };
 
@@ -518,16 +533,16 @@ export default function Bridge (root) {
   };
 
   // Save content to the BAD & Legacy.
-  const save = () => {
+  const save = (clean) => {
     // Check for diffs markers in CNXML.
     if (!isResolved()) return Messenger.error('You neet to resolve all conflict in order to save a module');
     // Convert current content to CNXML.
-    const cnxmlContent = toCNXML(Content.pull());
+    const cnxml = toCNXML(Content.pull(), clean);
     // Save data to the BAD & the Legacy.
     Storage
-      .saveRevision(cnxmlContent, Comments.pull())
+      .saveRevision(cnxml, Comments.pull())
       .then(Storage.legacy)
-      .then(({classes}) => Storage.saveCnxml(cnxmlContent, classes));
+      .then(({classes}) => Storage.saveCnxml(cnxml, classes));
     // Notify user.
     Messenger.success('Saving in progress. Wait for Legacy to reload...');
   };
@@ -571,6 +586,8 @@ export default function Bridge (root) {
 
   // Synchronize.
   Promise.all([
+    // Make a backup copy.
+    Storage.backupContent,
     // Provide User data for Comments panel.
     Storage.config.then(Comments.user),
     // Setup event & communication listeners.

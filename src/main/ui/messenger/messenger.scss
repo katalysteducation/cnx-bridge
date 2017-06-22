@@ -9,15 +9,14 @@
 
   &-panel {
     opacity: 0;
+    color: #666;
+    bottom: 20px;
     max-height: 0;
     margin-top: 0;
     display: flex;
-    bottom: 20px;
-    color: white;
     font-weight: 300;
     border-radius: 4px;
     position: relative;
-    background: #251f2e;
     transform: translateZ(0);
     padding: 0px 15px 0px 15px;
     box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
@@ -35,20 +34,52 @@
     }
 
     // Color classes.
+
+    &.info {
+      color: white;
+      background: #251f2e;
+
+      & .cnxb__messenger-buttons > button {
+        color: white;
+        &:hover {
+          opacity: 0.5;
+        }
+      }
+    }
+
+    &.error {
+      color: white;
+      background: #f44336;
+      & .cnxb__messenger-buttons > button {
+        color: white;
+        &:hover {
+          opacity: 0.5;
+        }
+      }
+    }
+
     &.warn {
       color: #333;
       font-weight: 400;
       background: #f9b300;
-    }
-
-    &.error {
-      background: #f44336;
+      & .cnxb__messenger-buttons > button {
+        color: #333;
+        &:hover {
+          opacity: 0.5;
+        }
+      }
     }
 
     &.success {
       color: #333;
       font-weight: 400;
       background: #8bc34a;
+      & .cnxb__messenger-buttons > button {
+        color: #333;
+        &:hover {
+          opacity: 0.5;
+        }
+      }
     }
 
     &.short .cnxb__messenger-message {
@@ -91,17 +122,8 @@
       text-transform: uppercase;
       transition: .3s ease color;
 
-
-      &.accept:hover {
-        color: #1e8e26;
-      }
-
-      &.cancel:hover {
-        color: #be2814;
-      }
-
       &:focus {
-        color: #666;
+        border-bottom: 1px solid #333;
         outline: none;
       }
 

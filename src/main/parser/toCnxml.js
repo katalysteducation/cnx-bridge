@@ -72,13 +72,15 @@ const transformComments = (node) => {
 const transformMath = (node) =>
   node.setAttribute('xmlns', 'http://www.w3.org/1998/Math/MathML');
 
+// Remove bridge's quote wrappers.
+const cleanup = (node) => node.outerHTML = node.innerHTML;
 
 // --------------------------------------------
 // ---- TO CNXML ----------------
 // ------------------------
 
 // Convert 'source' HTML tree into CNXML string.
-export default function toCnxml (htmlNode) {
+export default function toCnxml (htmlNode, clean = false) {
 
   // Clone source HTML node.
   const sourceClone = cleanMath(htmlNode.cloneNode(true));
@@ -102,6 +104,8 @@ export default function toCnxml (htmlNode) {
   Array.from(cnxml.querySelectorAll('term')).forEach(transformTerms);
   Array.from(cnxml.querySelectorAll('math')).forEach(transformMath);
 
+  // Clean content from bridge's wrappers.
+  if (clean) Array.from(cnxml.querySelectorAll('quote[type=comment], quote[type=wrapp]')).forEach(cleanup);
 
   // Return final CNXML.
   return serializer.serializeToString(cnxml)
