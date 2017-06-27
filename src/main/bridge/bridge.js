@@ -128,7 +128,7 @@ export default function Bridge (root) {
 
     // Alt + c -> Log all coments.
     if (event.altKey && event.key === 'c')
-      console.log(JSON.stringify({comments: Comments.pull()}));
+      console.log(Comments.pull());
 
     // Alt + q -> Clear current module.
     if (event.altKey && event.key === 'q')
