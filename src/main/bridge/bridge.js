@@ -140,15 +140,6 @@ export default function Bridge (root) {
       console.log(toCNXML(Content.pull()));
     }
 
-    // Alt + Ctrl + r -> Restore Content Backup Copy.
-    if (event.altKey && event.ctrlKey && event.key === 'r')
-      Storage.restoreContent()
-        .then(response => {
-          Messenger.success('Content restored successfully');
-          reload();
-        })
-        .catch(response => Messenger.error(response.message));
-
     // Alt + Ctrl + b -> Remove all `quote` wrappers & save module.
     if (event.altKey && event.ctrlKey && event.key === 'b') save(true);
 
@@ -584,8 +575,6 @@ export default function Bridge (root) {
 
   // Synchronize.
   Promise.all([
-    // Make a backup copy.
-    Storage.backupContent,
     // Provide User data for Comments panel.
     Storage.config.then(Comments.user),
     // Setup event & communication listeners.

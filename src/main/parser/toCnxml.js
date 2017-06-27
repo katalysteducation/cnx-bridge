@@ -25,8 +25,6 @@ const cloneXElement = (clone, node) => {
   }
   // Get content form editable node.
   else clone.innerHTML = node.innerHTML
-    // Remove all non-breaking sapces.
-    .replace(/&nbsp;/g, '')
     // Replace break-lines with <newline>NL</newline> element.
     // For some reason if <newline></newline> does not have content it wraps around text near to it what breaks markup.
     // Also <br> can't be placed in Editable node in any correct form: <br/> OR <br></br> which also breaks the markup.
@@ -92,6 +90,8 @@ export default function toCnxml (htmlNode, clean = false) {
     .replace(/<x-|<\/x-/g, (x) => ~x.indexOf('<\/') ? '</' : '<')
     // Close <img> tags.
     .replace(/<img(.*?)>/g, (a, attrs) => `<image${attrs}/>`)
+    // Remove all non-breaking sapces.
+    .replace(/&nbsp;/g, ' ');
 
   // Instantiate XML barser & serializer.
   const parser = new DOMParser();
@@ -109,8 +109,8 @@ export default function toCnxml (htmlNode, clean = false) {
 
   // Return final CNXML.
   return serializer.serializeToString(cnxml)
-    // Remove unecesery xml namesapces form CNXML elements & &nbsp; -> Leftovers from parsing & editing.
-    .replace(/(xmlns="http:\/\/www\.w3\.org\/1999\/xhtml")|(&nbsp;) /g, '')
+    // Remove unecesery xml namesapces form CNXML elements -> Leftovers from parsing & editing.
+    .replace(/xmlns="http:\/\/www\.w3\.org\/1999\/xhtml"/g, '')
     // Remove conetnt from <newline>NL</newline> tag.
     .replace(/<newline>NL<\/newline>/g, '<newline/>');
 };

@@ -93,30 +93,6 @@ const saveInLegacy = (content, classes = '', root) => new Promise((resolve, reje
   resolve(true);
 });
 
-// Save a backup copy of the cnxml content if it not contains any errors.
-const createBackupCopy = (root) => new Promise((resolve) => {
-  const textarea = root.querySelector('#textarea');
-  if (textarea && !document.querySelector('#cnx_validation_errors')) {
-    localStorage.setItem('cnx-bridge-ct-backup', JSON.stringify({ date: date(true), content: textarea.value }));
-    resolve(true);
-    return;
-  }
-  resolve(false);
-});
-
-// Load contant backup copy from localStorage.
-const restoreBackupContent = (root) => () => new Promise((resolve, reject) => {
-  const textarea = root.querySelector('#textarea');
-  if (textarea) {
-    const backup = JSON.parse(localStorage.getItem('cnx-bridge-ct-backup') || false);
-    if (!backup.content) reject({error:true, message: "Backup copy does not exist."});
-    else {
-      textarea.value = backup.content;
-      resolve({success:true});
-    }
-  }
-  reject({error:true, message: "No #textarea element."});
-});
 
 // Fetch current configuration and convert it to the promise.
 const getCurrentConfig = () => new Promise((resolve) =>
@@ -166,12 +142,6 @@ export default (function Storage() {
   // Create update fn. to update current model with the new revision.
   const updateCurrentModule = addRevision(currentModule, config);
 
-  // Create a backup copy of the cnxml content if it not contains any errors.
-  const backupContent = createBackupCopy(document);
-
-  // Restore backup copy of last correct formatted content.
-  const restoreContent = restoreBackupContent(document);
-
   // ---- API METHODS ----------------
 
   // Save current 'content' and 'comments' to the localStorage.
@@ -219,9 +189,5 @@ export default (function Storage() {
     saveCnxml,    // (cnxml) -> Promise
     clearModule,  // (module-db-id) -> Promise
     saveRevision, // (content, comments) -> Promise
-
-    // Backup methods.
-    backupContent, // prop -> Promise:Boolean
-    restoreContent // func -> Boolean
   };
 }());

@@ -88,7 +88,9 @@ export const eventDelegate = (selector, event, callback, context = document) => 
 // Selects whole word even if only one letter is selected.
 const selectWord = () => {
   const selection = window.getSelection();
-  if (!selection.isCollapsed) {
+  const inlineStyles = ['term', 'emphasis', 'quote'];
+
+  if (!selection.isCollapsed && !inlineStyles.some(el => selection.anchorNode.parentNode.matches(el))){
     // Detect if selection is backwards
     const range = document.createRange();
     range.setStart(selection.anchorNode, selection.anchorOffset);

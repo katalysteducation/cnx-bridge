@@ -1,4 +1,5 @@
 import Bridge from "./bridge";
+import Backup from "./bridge/backup";
 import connect from "../utilities/connect";
 import { injectScript, injectStyle } from "../utilities/tools";
 

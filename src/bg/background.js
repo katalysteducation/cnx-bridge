@@ -16,10 +16,7 @@ connect.pipe('menu', 'reload').to('bridge');
 connect.pipe('menu', 'recover').to('bridge');
 
 // Set bidirectional connection.
-// TODO: Add 'duplex' method to connect lib.
-// --> connect.duplex('menu', 'bridge', 'rdate');
-connect.pipe('menu', 'rdate').to('bridge');
-connect.pipe('bridge', 'rdate').to('menu');
+connect.duplex('menu', 'bridge', 'rdate');
 
 // Show options panel when content-script demend it.
 connect.listen('bridge','options', () => {
