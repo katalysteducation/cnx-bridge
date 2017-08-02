@@ -7,7 +7,7 @@ const newMessage = (id, type, message, acceptName, cancelName) => {
   const accept = acceptName ? `button.accept[data-accept="${id}"] > "${acceptName}"` : '';
   const cancel = cancelName ? `button.accept[data-cancel="${id}"] > "${cancelName}"` : '';
   return `
-  div#${id}.cnxb__messenger-panel.${type}${(message.length < 28) ? '.short' : ''}
+  div#${id}.cnxb__messenger-panel.${type}${(message.length < 34) ? '.short' : ''}
     div.cnxb__messenger-icon
       i.material-icons > "info_outline"
     div.cnxb__messenger-content
@@ -28,8 +28,8 @@ const newMessage = (id, type, message, acceptName, cancelName) => {
 // Messenger[.info, .warn, .success, .error]('Message String', callback(accepted), 'Accept', 'Cancel');
 // NOTE:
 // In order to get access to the callback function you need to specify second argument as a callback function
-// with at least third argument which is the name of the accept button. Fourth argument is the name of the
-// cancel button. Callback function will be called with accept argument set to true or false depends on clicked button.
+// with at least third argument which is the name of the ACCEPT button. Fourth argument is the name of the
+// CENCEL button. Callback function will be called with accept argument set to TRUE or FALSE depends on clicked button.
 export default (function Messenger () {
   // Create UI element.
   const element = createElement('div.cnxb__messenger');

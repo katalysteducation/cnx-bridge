@@ -1,9 +1,11 @@
 import Bridge from "./bridge";
+import Backup from "./bridge/backup";
 import connect from "../utilities/connect";
 import { injectScript, injectStyle } from "../utilities/tools";
 
-// Add Google Icons.
+// Add Google Font & Icons.
 injectStyle('https://fonts.googleapis.com/icon?family=Material+Icons');
+injectStyle('https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&amp;subset=latin-ext');
 
 // Load External scripts for rendering Math.
 injectScript('app/jax/jax.config.js');

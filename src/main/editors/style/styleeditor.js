@@ -56,7 +56,7 @@ export default function StyleEditor (pubsub) {
   };
 
   // Supported inline styles.
-  const types = ['term', 'emphasis', 'ref', 'quote'];
+  const types = ['term', 'emphasis', 'quote'];
 
   // Toglle Panels.
   const activateStylePanel = (flag) => {
@@ -73,10 +73,9 @@ export default function StyleEditor (pubsub) {
 
   // Avilable style actions.
   const actions = {
-    ref: style('ref', types, pubsub),
     term: style('term', types, pubsub),
     bold: style('emphasis[effect="bold"]', types, pubsub),
-    italic: style('emphasis[effect="italic"]', types, pubsub),
+    italic: style('emphasis[effect="italics"]', types, pubsub),
     commentStyle: style(`quote[type="comment" display="inline"]`, types, pubsub),
 
     comment (state) {
@@ -115,8 +114,7 @@ export default function StyleEditor (pubsub) {
   element.addEventListener('click', detectAction);
 
   // API Method.
-  const select = (content, range) => {
-
+  const select = (content, range) => {  
     // If previous comment was empty remove comment selection,
     // else Clear comment input for new entry.
     if (state.action === 'comment' && crefs.input.textContent.length === 0)

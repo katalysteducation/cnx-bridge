@@ -85,7 +85,7 @@ const saveInLegacy = (content, classes = '', root) => new Promise((resolve, reje
   // Populate textarea with new CNXML.
   textarea.value = textarea.value.replace(/<content>([\S\s\w]+)<\/content>/, content
     .replace('<content>', '<content>' + classes))
-  // NOTE: Metadata sveing is not supported by the full-source-editing -- DEAD-END!
+  // NOTE: !Metadata sveing is not supported by the full-source-editing -- DEAD-END!
   // .replace(/<metadata([\S\s\w]+)<\/metadata>/, metadata);
   // Start saving process in Legacy.
   button.click();
@@ -142,7 +142,6 @@ export default (function Storage() {
   // Create update fn. to update current model with the new revision.
   const updateCurrentModule = addRevision(currentModule, config);
 
-
   // ---- API METHODS ----------------
 
   // Save current 'content' and 'comments' to the localStorage.
@@ -176,6 +175,7 @@ export default (function Storage() {
     return client.get.clear(id || getModuleId());
   };
 
+
   // Public API.
   return {
     // Getters.
@@ -188,6 +188,6 @@ export default (function Storage() {
     saveDraft,    // ({content, comments, module}) -> Promise
     saveCnxml,    // (cnxml) -> Promise
     clearModule,  // (module-db-id) -> Promise
-    saveRevision  // (content, comments) -> Promise
+    saveRevision, // (content, comments) -> Promise
   };
 }());

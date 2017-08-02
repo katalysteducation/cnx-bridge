@@ -25,8 +25,8 @@ import diff from "../diff";
 import {toHTML, toCNXML} from "../parser";
 import PubSub from "../../utilities/pubsub";
 import {template, createElement} from "../../utilities/travrs";
-import {uid, date, getNodesOut, Memo} from "../../utilities/tools";
 import {rejectAllChanges, acceptAllChanges, mergeSameSiblings} from "../diff/merge";
+import {uid, date, getNodesOut, Memo, pullAllDiffs, selectWholeWords} from "../../utilities/tools";
 
 require('../styles/bridge.scss');
 
@@ -126,23 +126,29 @@ export default function Bridge (root) {
     if (event.altKey && event.key === 'u')
       Storage.config.then(console.log);
 
-    // Alt + c -> Show all coments.
+    // Alt + c -> Log all coments.
     if (event.altKey && event.key === 'c')
-      console.log(JSON.stringify({comments: Comments.pull()}));
+      console.log(Comments.pull());
 
     // Alt + q -> Clear current module.
     if (event.altKey && event.key === 'q')
       Storage.clearModule().then(console.log);
 
-    // Alt + x -> Show current CNXML.
+    // Alt + x -> Log current CNXML.
     if (event.altKey && event.key === 'x') {
       rejectAllChanges(Array.from(Content.element.querySelectorAll('del, ins')));
       console.log(toCNXML(Content.pull()));
     }
 
-    // Alt + m -> Show test messahe
+    // Alt + Ctrl + b -> Remove all `quote` wrappers & save module.
+    if (event.altKey && event.ctrlKey && event.key === 'b') save(true);
+
+    // Alt + m -> Message test.
     if (event.altKey && event.key === 'm') {
-      Messenger.info('You are trying to compare the same versions')
+      Messenger.success ('This is message', ()=>{}, 'OK', 'CANCEL');
+      Messenger.warn ('This is message', ()=>{}, 'OK', 'CANCEL');
+      Messenger.error ('This is message', ()=>{}, 'OK', 'CANCEL');
+      Messenger.info ('This is message', ()=>{}, 'OK', 'CANCEL');
     }
   };
 
@@ -154,11 +160,15 @@ export default function Bridge (root) {
   // to not interfere with reorder functionality.
   const select = new Select(contentPanels.view, state.editors);
 
+
   // Filter what can be selected by Inine Edutors.
   const selectEditable = (event) => {
     const editable = event.target.closest('p[data-target=editable][contenteditable=true]');
     // Allow for selecting: Ediitable containers, Diff markesr & Math wrappers.
-    if ((editable) || event.target.matches('del, ins, span[data-select=math]')) select.onContentSelected(event)//.then(onInlineEditorOpen);
+    if ((editable) || event.target.matches('del, ins, span[data-select=math]')){
+      selectWholeWords();
+      select.onContentSelected(event);
+     }
     else select.dismiss();
   };
 
@@ -371,13 +381,7 @@ export default function Bridge (root) {
     // Compare revision (old content) with current (new) content.
     Content.set(diff(toHTML(revision.content), Content.element));
     // Unwrap comment Markers and merge diff tags.
-    const merged = mergeSameSiblings(Array.from(Content.element.querySelectorAll('del, ins')).filter(diff => {
-      if (!diff.firstChild.tagName || !diff.firstChild.tagName === "CM") return true;
-      // Trim content to remove remaining spaces at the end.
-      diff.outerHTML = diff.innerHTML.trim();
-      return false;
-    }));
-
+    const merged = mergeSameSiblings(pullAllDiffs(Content.element));
     // In case there is no confilct to resolve - end merging process.
     if (merged.length === 0) onConflictResolve();
 
@@ -518,16 +522,16 @@ export default function Bridge (root) {
   };
 
   // Save content to the BAD & Legacy.
-  const save = () => {
+  const save = (clean) => {
     // Check for diffs markers in CNXML.
     if (!isResolved()) return Messenger.error('You neet to resolve all conflict in order to save a module');
     // Convert current content to CNXML.
-    const cnxmlContent = toCNXML(Content.pull());
+    const cnxml = toCNXML(Content.pull(), clean);
     // Save data to the BAD & the Legacy.
     Storage
-      .saveRevision(cnxmlContent, Comments.pull())
+      .saveRevision(cnxml, Comments.pull())
       .then(Storage.legacy)
-      .then(({classes}) => Storage.saveCnxml(cnxmlContent, classes));
+      .then(({classes}) => Storage.saveCnxml(cnxml, classes));
     // Notify user.
     Messenger.success('Saving in progress. Wait for Legacy to reload...');
   };

@@ -25,8 +25,6 @@ const cloneXElement = (clone, node) => {
   }
   // Get content form editable node.
   else clone.innerHTML = node.innerHTML
-    // Remove all non-breaking sapces.
-    .replace(/&nbsp;/g, '')
     // Replace break-lines with <newline>NL</newline> element.
     // For some reason if <newline></newline> does not have content it wraps around text near to it what breaks markup.
     // Also <br> can't be placed in Editable node in any correct form: <br/> OR <br></br> which also breaks the markup.
@@ -72,13 +70,15 @@ const transformComments = (node) => {
 const transformMath = (node) =>
   node.setAttribute('xmlns', 'http://www.w3.org/1998/Math/MathML');
 
+// Remove bridge's quote wrappers.
+const cleanup = (node) => node.outerHTML = node.innerHTML;
 
 // --------------------------------------------
 // ---- TO CNXML ----------------
 // ------------------------
 
 // Convert 'source' HTML tree into CNXML string.
-export default function toCnxml (htmlNode) {
+export default function toCnxml (htmlNode, clean = false) {
 
   // Clone source HTML node.
   const sourceClone = cleanMath(htmlNode.cloneNode(true));
@@ -90,6 +90,8 @@ export default function toCnxml (htmlNode) {
     .replace(/<x-|<\/x-/g, (x) => ~x.indexOf('<\/') ? '</' : '<')
     // Close <img> tags.
     .replace(/<img(.*?)>/g, (a, attrs) => `<image${attrs}/>`)
+    // Remove all non-breaking sapces.
+    .replace(/&nbsp;/g, ' ');
 
   // Instantiate XML barser & serializer.
   const parser = new DOMParser();
@@ -102,11 +104,13 @@ export default function toCnxml (htmlNode) {
   Array.from(cnxml.querySelectorAll('term')).forEach(transformTerms);
   Array.from(cnxml.querySelectorAll('math')).forEach(transformMath);
 
+  // Clean content from bridge's wrappers.
+  if (clean) Array.from(cnxml.querySelectorAll('quote[type=comment], quote[type=wrapp]')).forEach(cleanup);
 
   // Return final CNXML.
   return serializer.serializeToString(cnxml)
-    // Remove unecesery xml namesapces form CNXML elements & &nbsp; -> Leftovers from parsing & editing.
-    .replace(/(xmlns="http:\/\/www\.w3\.org\/1999\/xhtml")|(&nbsp;) /g, '')
+    // Remove unecesery xml namesapces form CNXML elements -> Leftovers from parsing & editing.
+    .replace(/xmlns="http:\/\/www\.w3\.org\/1999\/xhtml"/g, '')
     // Remove conetnt from <newline>NL</newline> tag.
     .replace(/<newline>NL<\/newline>/g, '<newline/>');
 };
